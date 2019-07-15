@@ -8,13 +8,15 @@
 
 ## 1. Introduction  
 * 文本检测的特点和挑战  
-&emsp;&emsp;尺度变化性、特殊的宽高比例、方向、不同字体风格、光照、角度等，其中尤其是**方向检测**十分重要。
+  &emsp;&emsp;尺度变化性、特殊的宽高比例、方向、不同字体风格、光照、角度等，其中尤其是**方向检测**十分重要。
 
 * 本文方案
-<center><img src="http://chaserblog.test.upcdn.net/blogs/paper/R2CNN/str.png" alt="" style="width:90%" /></center>
+
+  ![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/R2CNN/1.png) 
 
 &emsp;&emsp;如上图，**首先RPN生成正常的水平proposal（~~论文用的axis-aligned，应该是表述不清，实际是水平竖直检测框~~），二分类筛掉，然后保留的每个proposal回归斜框和水平框坐标，最后对斜框进行斜向NMS得到最终检测结果**。效果如下图：        
-<center><img src="http://chaserblog.test.upcdn.net/blogs/paper/R2CNN/img1.png" alt="" style="width:50%" /></center>
+
+​	![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/R2CNN/2.png) 
 
 &emsp;&emsp;a是原图，b是RPN生成的proposal，c是回归的正框和斜框，d是斜的NMS保留的斜框。注意这个和RRPN的区别，RRPN是直接在RPN阶段就生成斜框了。
 
