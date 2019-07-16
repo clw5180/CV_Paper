@@ -3,7 +3,12 @@
 # **R2CNN-Rotational-Region-CNN-for-Orientation-Robust-Scene-Text-Detection**
 
 论文发布日期：2017.6.29  [CVPR]
+
 论文链接：https://arxiv.org/abs/1706.09579
+
+代码实现：<https://github.com/DetectionTeamUCAS/R2CNN_Faster-RCNN_Tensorflow>
+
+
 
 ## 1. Introduction  
 &emsp;&emsp;文本检测的**特点和挑战** ：多尺度、不同的宽高比、不同字体风格、光照、透视畸变（不同的拍摄角度）以及方向等。对于场景文本检测（scene text detection），除了要预测轴向对齐（axis-aligned）的坐标信息之外，还要预测出文本的**方向**，这对于场景文本的识别十分重要。这篇文章提出了**R2CNN（Rotational Region CNN**）算法解决**旋转文本**的检测。R2CNN算法的整体结构如下图 ：
