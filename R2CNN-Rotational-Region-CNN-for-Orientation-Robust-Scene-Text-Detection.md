@@ -58,11 +58,11 @@
 
 ![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/R2CNN/5.png)
 
-损失函数方面，
+&emsp;&emsp;损失函数方面，
 
-第一阶段损失函数的定义和Faster RCNN一样。
+&emsp;&emsp;第一阶段损失函数的定义和Faster RCNN一样。
 
-第二阶段的损失函数从最上面的网络结构图也可以看出，多了一个倾斜框的回归损失Lreg(ui,ui*)。斜框中坐标损失（x1,y1,x2,y2）和Faster RCNN中xy损失的定义是一样的，h和Faster RCNN中h的损失定义也是一样的。采用目标检测中常用的smooth L1损失函数，所以损失函数方面没有太大的改动。 
+&emsp;&emsp;第二阶段的损失函数从最上面的网络结构图也可以看出，多了一个倾斜框的回归损失Lreg(ui,ui*)。斜框中坐标损失（x1,y1,x2,y2）和Faster RCNN中xy损失的定义是一样的，h和Faster RCNN中h的损失定义也是一样的。采用目标检测中常用的smooth L1损失函数，所以损失函数方面没有太大的改动。 
 
 ## 3. 实验结果
 &emsp;&emsp;Table1是在IDCAR 2015数据集上不同参数配置时R2CNN测试结果。 
@@ -70,9 +70,9 @@
 ![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/R2CNN/6.png)
 
 一张表就够了，可以看出：    
-- 1. 加入正框预测的效果涨点值得一看，应该是让他更好地学习    
-- 2. 加入小尺度anchor效果不错    
-- 3. 多尺度pooling的效果也还行，不是特别明显 
+* 加入正框预测的效果涨点值得一看，应该是让他更好地学习    
+* 加入小尺度anchor效果不错    
+* 多尺度pooling的效果也还行，不是特别明显 
 
 
 &emsp;&emsp;Table2是R2CNN算法和其他算法在IDCAR2015数据集上的对比结果。 
