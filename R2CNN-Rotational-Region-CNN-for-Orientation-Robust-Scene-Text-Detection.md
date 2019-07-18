@@ -1,6 +1,6 @@
 
 
-# **R2CNN-Rotational-Region-CNN-for-Orientation-Robust-Scene-Text-Detection**
+# **论文：R2CNN-Rotational-Region-CNN-for-Orientation-Robust-Scene-Text-Detection**
 
 论文发布日期：2017.6.29
 
