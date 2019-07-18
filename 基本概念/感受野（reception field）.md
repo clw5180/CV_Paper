@@ -1,24 +1,24 @@
 感受野（reception field）
 ============
 
-​       自注：在阅读Faster R-CNN的论文时，看到了这样一句：
+　　自注：在阅读Faster R-CNN的论文时，看到了这样一句：
 
 ```
 "We use n = 3 in this paper, noting that the effective receptive
 field on the input image is large (171 and 228 pixels for ZF and VGG, respectively. "
 ```
 
-​        对于171和228这两个数字怎么得到的不是很清楚，所以上网查找了一些资料，才算想明白了，故总结如下。
+　　对于171和228这两个数字怎么得到的不是很清楚，所以上网查找了一些资料，才算想明白了，故总结如下。
 
 
 
 ## 1. 感受野的概念
 
-​         学习R-CNN系列论文时，经常出现感受野（receptive field）这个名词，在这里介绍一下感受野的大小是如何计算的。在卷积神经网络中，感受野的定义是卷积神经网络每一层输出的特征图（feature map）上的像素点在原始图像上映射的区域大小。
+　　学习R-CNN系列论文时，经常出现感受野（receptive field）这个名词，在这里介绍一下感受野的大小是如何计算的。在卷积神经网络中，感受野的定义是卷积神经网络每一层输出的特征图（feature map）上的像素点在原始图像上映射的区域大小。
 
 　　![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/感受野/1.png)
 
-​         R-CNN论文中有一段描述，AlexNet网络pool5输出的特征图上的像素在输入图像上有很大的感受野（have very large receptive fields (195 × 195 pixels)）和步长（strides (32×32 pixels) ）， 这两个变量的数值是如何得出的呢？
+　　R-CNN论文中有一段描述，AlexNet网络pool5输出的特征图上的像素在输入图像上有很大的感受野（have very large receptive fields (195 × 195 pixels)）和步长（strides (32×32 pixels) ）， 这两个变量的数值是如何得出的呢？
 
 
 
