@@ -1,4 +1,4 @@
-Faster R-CNN: Towards Real-Time Object Detection with Region Proposal Networks
+论文：Faster R-CNN: Towards Real-Time Object Detection with Region Proposal Networks
 ============
 
 论文发布日期：2015.6.4 
