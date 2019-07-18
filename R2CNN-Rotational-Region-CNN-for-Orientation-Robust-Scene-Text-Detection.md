@@ -18,7 +18,9 @@
 ![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/R2CNN/1.png)
 
 &emsp;&emsp;R2CNN采用的架构是两阶段的Faster RCNN，如上图所示。
+
 &emsp;&emsp;第一个阶段：图(a)为原始输入图片，经过CNN得到feature maps后再经过RPN网络，得到**水平框**的Proposal，见图(b)。由于很多文字是很小的，因此将Faster RCNN中的anchor scale(8, 16, 32)改为(4, 8, 16, 32)，实验证明增加了小尺度anchor后，检测效果明显提升。
+
 &emsp;&emsp;第二个阶段：对于每个proposal，在RoI Pooling时平行地使用了不同的pooled size（之前只有7×7，现在额外增加了**3×11和11×3**）；如上图所示，3x11可以更好地捕捉水平特征，而11x3可以更好地捕捉竖直特征，有利于**解决水平和竖直方向长文本的检测**。然后将提取到的RoI特征concat在一起，经过fc6，fc7，再进行**分类**预测（得到text/non-text的置信度，二分类）、**水平框**（axis-aligned box）预测、和**倾斜框**（inclined box）预测，见图(c)，实验表明回归水平框可以使检测效果有所提升；之后经过斜框NMS进行后处理，得到最后的结果，见图(d)。
 
 ![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/R2CNN/2.png)
