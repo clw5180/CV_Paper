@@ -18,7 +18,7 @@ field on the input image is large (171 and 228 pixels for ZF and VGG, respective
 
 　　![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/感受野/1.png)
 
-​        R-CNN论文中有一段描述，AlexNet网络pool5输出的特征图上的像素在输入图像上有很大的感受野（have very large receptive fields (195 × 195 pixels)）和步长（strides (32×32 pixels) ）， 这两个变量的数值是如何得出的呢？
+​         R-CNN论文中有一段描述，AlexNet网络pool5输出的特征图上的像素在输入图像上有很大的感受野（have very large receptive fields (195 × 195 pixels)）和步长（strides (32×32 pixels) ）， 这两个变量的数值是如何得出的呢？
 
 
 
