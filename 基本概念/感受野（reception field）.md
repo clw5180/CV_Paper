@@ -35,7 +35,7 @@ field on the input image is large (171 and 228 pixels for ZF and VGG, respective
 这里的每一个卷积层还有一个strides的概念，这个strides是之前所有层stride的乘积。即：
 
 ```python
-strides（i） = stride(1) * stride(2) * ...* stride(i-1) 
+strides（i） = stride(1) * stride(2) * ... * stride(i-1) 
 ```
 
 　　关于感受野大小的计算采用top to down的方式， 即先计算最深层在前一层上的感受野，然后逐渐传递到第一层，使用的公式可以表示如下：　　　
