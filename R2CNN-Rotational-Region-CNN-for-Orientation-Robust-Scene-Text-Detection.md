@@ -2,7 +2,7 @@
 
 # **R2CNN-Rotational-Region-CNN-for-Orientation-Robust-Scene-Text-Detection**
 
-论文发布日期：2017.6.29  [CVPR]
+论文发布日期：2017.6.29
 
 论文链接：https://arxiv.org/abs/1706.09579
 
@@ -10,7 +10,9 @@
 
 
 
-## 1. Introduction  
+[TOC]
+
+## 1. 介绍
 &emsp;&emsp;文本检测的**特点和挑战** ：多尺度、不同的宽高比、不同字体风格、光照、透视畸变（不同的拍摄角度）以及方向等。对于场景文本检测（scene text detection），除了要预测轴向对齐（axis-aligned）的坐标信息之外，还要预测出文本的**方向**，这对于场景文本的识别十分重要。这篇文章提出了**R2CNN（Rotational Region CNN**）算法解决**旋转文本**的检测。R2CNN算法的整体结构如下图 ：
 
 
@@ -33,9 +35,9 @@
 
 
 
-## 2. Proposed Approach
+## 2. 主要内容
 
-### 2.1 Problem definition
+### 2.1 倾斜框坐标表征
 * gt定义 
   &emsp;&emsp;文本检测的ICDAR竞赛数据集是不规则的四边形，用顺时针的四个点坐标进行表征，不是严格的矩形框。这种不规则四边形一般可以用斜矩形来近似拟合，所以后面的bbox都采用斜矩形进行bbox预测。
 
@@ -51,7 +53,7 @@
 
 
 
-### 2.2 Rotational Region CNN (R2CNN)
+### 2.2 倾斜框NMS
 
 &emsp;&emsp;**下图是关于倾斜框的NMS算法**。图(a)是R2CNN算法的水平框和倾斜框预测结果合并在一张图上的结果。图(b)是采用水平框的NMS算法处理图(a)中的预测框后得到的结果，可以看到有部分正确的文本框被剔除掉（红色虚线）。图(c)是采用倾斜框的NMS算法处理图(a)中的预测框后得到的结果，可以看到结果比较好。基于倾斜框的NMS算法和传统的基于水平矩形框的NMS算法差别不大，只不过计算对象换成两个倾斜框，可以参考：*Arbitrary-Oriented Scene Text Detection via Rotation Proposals*，这里就不细说了，其实和正框的NMS思想是一样的，不同的是计算两个斜框的IOU会比计算两个正框的IOU复杂一些。实验表明，斜的NMS效果会比正的好。很好理解，对于斜向密集目标的检测，常规NMS很容易出现IoU过大而被抑制，漏检很大，斜向NMS就不会。 
 
@@ -59,7 +61,7 @@
 
 
 
-### 2.3 Training objective (Multi-task loss)
+### 2.3 多任务损失
 
 ![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/R2CNN/5.png)
 
@@ -71,7 +73,7 @@
 
 
 
-## 3. Experiments
+## 3. 实验结果
 Table1是在IDCAR 2015数据集上不同参数配置时R2CNN测试结果。 
 
 ![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/R2CNN/6.png)
@@ -96,6 +98,6 @@ Table3是R2CNN算法和其他算法在IDCAR2013数据集上的对比结果。
 
 
 
-## 4. Conclusion
+## 4. 结论
 * 采用多尺度pooling提取不同宽高比的信息
 * 斜框的NMS解决传统NMS的密集漏检问题
