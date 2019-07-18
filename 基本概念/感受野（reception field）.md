@@ -41,9 +41,9 @@ strides（i） = stride(1) * stride(2) * ...* stride(i-1)
 　　关于感受野大小的计算采用top to down的方式， 即先计算最深层在前一层上的感受野，然后逐渐传递到第一层，使用的公式可以表示如下：　　　
 
 ```python
-RF = 1                           # 待计算的feature map上的感受野大小，最top层的大小为1
+RF = 1                                             # 待计算的feature map上的感受野大小，最top层的大小为1
 for layer in reversed(range(layernum)):
-	RF = ((RF -1) * stride) + fsize  # for layer in （top layer To down layer）
+	RF = ((RF -1) * stride) + fsize            # for layer in （top layer To down layer）
 ```
 
 　　**stride** 表示**卷积的步长**； **fsize**表示卷积层**滤波器的大小**。　　
@@ -56,14 +56,14 @@ for layer in reversed(range(layernum)):
 # receptiveField.py
 # 功能：计算卷积神经网络每一层的感受野大小
 
-net_struct = {'alexnet': {'net':[[11,4,0],[3,2,0],[5,1,2],[3,2,0],[3,1,1],[3,1,1],[3,1,1],[3,2,0]],
-                   'name':['conv1','pool1','conv2','pool2','conv3','conv4','conv5','pool5']},
-       'vgg16': {'net':[[3,1,1],[3,1,1],[2,2,0],[3,1,1],[3,1,1],[2,2,0],[3,1,1],[3,1,1],[3,1,1],
-                        [2,2,0],[3,1,1],[3,1,1],[3,1,1],[2,2,0],[3,1,1],[3,1,1],[3,1,1],[2,2,0]],
-                 'name':['conv1_1','conv1_2','pool1','conv2_1','conv2_2','pool2','conv3_1','conv3_2',
-                         'conv3_3', 'pool3','conv4_1','conv4_2','conv4_3','pool4','conv5_1','conv5_2','conv5_3','pool5']},
-       'zf-5':{'net': [[7,2,3],[3,2,1],[5,2,2],[3,2,1],[3,1,1],[3,1,1],[3,1,1]],
-               'name': ['conv1','pool1','conv2','pool2','conv3','conv4','conv5']}}
+net_struct = { 'alexnet': { 'net' : [[11,4,0],[3,2,0],[5,1,2],[3,2,0],[3,1,1],[3,1,1],[3,1,1],[3,2,0]],
+                            'name': ['conv1','pool1','conv2','pool2','conv3','conv4','conv5','pool5']},
+       		 'vgg16': { 'net' : [[3,1,1],[3,1,1],[2,2,0],[3,1,1],[3,1,1],[2,2,0],[3,1,1],[3,1,1],[3,1,1],
+                                    [2,2,0],[3,1,1],[3,1,1],[3,1,1],[2,2,0],[3,1,1],[3,1,1],[3,1,1],[2,2,0]],
+                           'name' : ['conv1_1','conv1_2','pool1','conv2_1','conv2_2','pool2','conv3_1','conv3_2',
+                                     'conv3_3', 'pool3','conv4_1','conv4_2','conv4_3','pool4','conv5_1','conv5_2','conv5_3','pool5']},
+       	  	  'zf-5': { 'net' : [[7,2,3],[3,2,1],[5,2,2],[3,2,1],[3,1,1],[3,1,1],[3,1,1]],
+               		   'name' : ['conv1','pool1','conv2','pool2','conv3','conv4','conv5']}}
 
 imsize = 224
 
@@ -117,4 +117,4 @@ if __name__ == '__main__':
 
 5 Spatial Pyramid Pooling in Deep Convolutional *Networks for Visual Recognition*
 
-*6 http://blog.cvmarcher.com/posts/2015/05/17/cnn-trick/*
+6 http://blog.cvmarcher.com/posts/2015/05/17/cnn-trick/
