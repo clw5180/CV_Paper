@@ -1,11 +1,13 @@
 论文：Faster R-CNN: Towards Real-Time Object Detection with Region Proposal Networks
 ============
 
-论文发布日期：2015.6.4 
+论文地址：https://arxiv.org/abs/1506.01497
 
-论文链接：https://arxiv.org/abs/1506.01497
+代码复现：https://github.com/smallcorgi/Faster-RCNN_TF
 
-代码实现：https://github.com/smallcorgi/Faster-RCNN_TF
+​                   https://github.com/endernewton/tf-faster-rcnn
+
+​                   https://github.com/rbgirshick/py-faster-rcnn
 
 
 
@@ -323,7 +325,7 @@ layer
 
 
 
-##  3. 训练过程如下：
+##  3. 训练过程：
 
 - Step 1：用model初始化RPN网络，然后训练RPN，在训练后，model以及RPN的unique会被更新。
 

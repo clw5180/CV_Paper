@@ -2,11 +2,9 @@
 
 # **论文：R2CNN-Rotational-Region-CNN-for-Orientation-Robust-Scene-Text-Detection**
 
-论文发布日期：2017.6.29
+论文地址：https://arxiv.org/abs/1706.09579
 
-论文链接：https://arxiv.org/abs/1706.09579
-
-代码实现：<https://github.com/DetectionTeamUCAS/R2CNN_Faster-RCNN_Tensorflow>
+代码复现：<https://github.com/DetectionTeamUCAS/R2CNN_Faster-RCNN_Tensorflow>
 
 
 
@@ -28,6 +26,7 @@
 
 &emsp;&emsp;综上，简单来说就是**首先RPN生成正常的水平proposal，二分类筛掉，然后保留的每个proposal回归水平框和斜框坐标，最后对斜框进行斜向NMS得到最终检测结果**。（注：R2CNN和RRPN的区别，**RRPN是直接在RPN阶段就会生成倾斜的矩形框**；而作者认为使用生成水平矩形框的RPN就已经足够了）
   另外作者在本文中提到了目前主流的文本检测的深度学习的方法有：**TextBoxes**是一个具有单个深度神经网络的end to end的快速场景文本检测器。**DeepText**通过Inception-RPN生成单词的proposals，然后文本检测网络对每个单词的proposal进行位置精修并给出score。**FCRN**（全卷积回归网络）是利用合成图像训练场景文本检测模型。但是，上述这些方法都生成的是水平框（axis-aligned detection boxes），不能解决文本的方向问题。**CTPN**检测固定宽度的vertical boxes，然后使用BLSTM捕获顺序信息，然后连接vertical boxes以获得最终检测框；CTPN擅长检测水平方向的文本，但不是和检测有倾斜角度的文本。基于**FCN**（全卷积网络）用于检测多种方向的场景文本，需要以下3个步骤：一是文本块FCN的文本检测，二是基于MSER的多向文本行候选的生成，三是文本行候选的分类。**RRPN**也用于检测任意方向的场景文本。RPN生成具有倾斜角度的proposal，并且后面的分类和回归会基于这些proposal。**SegLink**提出通过检测段落和连接来检测具有特定方向的文本，可以用于检测任意长度的文本行。**EAST**的特点是快速和准确。**DMPNet**使用更紧密的四边形来检测文本。
+
 
 
 ## 2. 主要内容
@@ -64,7 +63,10 @@
 
 &emsp;&emsp;第二阶段的损失函数从最上面的网络结构图也可以看出，多了一个倾斜框的回归损失Lreg(ui,ui*)。斜框中坐标损失（x1,y1,x2,y2）和Faster RCNN中xy损失的定义是一样的，h和Faster RCNN中h的损失定义也是一样的。采用目标检测中常用的smooth L1损失函数，所以损失函数方面没有太大的改动。 
 
+
+
 ## 3. 实验结果
+
 &emsp;&emsp;Table1是在IDCAR 2015数据集上不同参数配置时R2CNN测试结果。 
 
 ![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/R2CNN/6.png)
@@ -85,6 +87,8 @@
 ![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/R2CNN/8.jpg)
 
 
+
 ## 4. 结论
+
 * 采用多尺度pooling提取不同宽高比的信息
 * 斜框的NMS解决传统NMS的密集漏检问题
