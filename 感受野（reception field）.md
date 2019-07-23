@@ -1,14 +1,14 @@
 感受野（reception field）
 ============
 
-　　自注：在阅读Faster R-CNN的论文时，看到了这样一句：
+自注：在阅读Faster R-CNN的论文时，看到了这样一句：
 
 ```
 "We use n = 3 in this paper, noting that the effective receptive
 field on the input image is large (171 and 228 pixels for ZF and VGG, respectively. "
 ```
 
-　　对于171和228这两个数字怎么得到的不是很清楚，所以上网查找了一些资料，才算想明白了，故总结如下。
+对于171和228这两个数字怎么得到的不是很清楚，所以上网查找了一些资料，才算想明白了，故总结如下。
 
 
 
