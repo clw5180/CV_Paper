@@ -1,0 +1,36 @@
+
+
+# **OHEM：Training Region-based Object Detectors with Online Hard Example Mining**
+
+论文地址：<https://arxiv.org/abs/1604.03540>
+
+代码复现：<https://github.com/abhi2610/ohem>
+
+
+
+## 1. 介绍
+
+&emsp;&emsp;
+
+![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/R2CNN/1.png)
+
+&emsp;&emsp;
+
+
+
+## 2. 主要内容
+
+
+
+
+
+## 3. 实验结果
+
+&emsp;&emsp;
+
+
+
+## 4. 结论
+
+* 
+* 
