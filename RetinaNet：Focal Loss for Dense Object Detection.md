@@ -6,9 +6,9 @@
 
 代码复现：<https://github.com/fizyr/keras-retinanet>
 
-​				   https://github.com/DetectionTeamUCAS/RetinaNet_Tensorflow_Rotation （旋转框）
+​                   https://github.com/DetectionTeamUCAS/RetinaNet_Tensorflow_Rotation （旋转框）
 
-​	   		    https://github.com/miraclewkf/FocalLoss-MXNet（优化版的MXNet实现）
+​	   		    https://github.com/miraclewkf/FocalLoss-MXNet （优化版的MXNet实现）
 
 
 
@@ -21,7 +21,7 @@
 &emsp;&emsp;因此针对类别不均衡问题，作者提出一种新的损失函数：focal loss，这个损失函数是在标准交叉熵损失基础上修改得到的。这个函数可以通过减少易分类样本的权重，使得模型在训练时更专注于难分类的样本。为了证明focal loss的有效性，作者设计了一个dense detector：RetinaNet，并且在训练时采用focal loss训练。实验证明RetinaNet不仅可以达到one-stage detector的速度，也能有two-stage detector的准确率。
 &emsp;&emsp;**focal loss的含义可以看如下Figure1**，横坐标是pt，纵坐标是loss。CE(pt)表示标准的交叉熵公式，FL(pt)表示focal loss中用到的改进的交叉熵，可以看出和原来的交叉熵对比多了一个调制系数（modulating factor）。为什么要加上这个调制系数呢？目的是通过减少易分类样本的权重，从而使得模型在训练时更专注于难分类的样本。首先pt的范围是0到1，所以不管γ是多少，这个调制系数都是大于等于0的。易分类的样本再多，你的权重很小，那么对于total loss的共享也就不会太大。那么怎么控制样本权重呢？举个例子，假设一个二分类，样本x1属于类别1的pt=0.9，样本x2属于类别1的pt=0.6，显然前者更可能是类别1，假设γ=1，那么对于pt=0.9，调制系数则为0.1；对于pt=0.6，调制系数则为0.4，这个调制系数就是这个样本对loss的贡献程度，也就是权重，所以难分的样本（pt=0.6）的权重更大。下图**Figure1中γ=0的蓝色曲线就是标准的交叉熵损失**。
 
-![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/RetinaNet/1.png)
+<div align=center>![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/RetinaNet/1.png)
 
 （自注：个人认为这里pt表示”**是gt的概率，或者和gt的接近程度**“，也就是衡量标准变成了真值，**而不再是之前用p描述的”是1的概率“**；也就是说，如果样本实际值是下面公式中所示的y=1，而p=0.8，则相当于pt和真实值很接近；而如果样本实际值y=0，而p=0.1，同样预测和真实值很接近，那么这里pt=1-0.1=0.9，符合上面的描述。）
 
