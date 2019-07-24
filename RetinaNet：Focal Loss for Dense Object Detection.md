@@ -6,19 +6,19 @@
 
 代码复现：<https://github.com/fizyr/keras-retinanet>
 
-​&emsp;&emsp;&emsp;&emsp;&emsp;<https://github.com/DetectionTeamUCAS/RetinaNet_Tensorflow_Rotation> （旋转框）
+&emsp;&emsp;&emsp;&emsp;&emsp;<https://github.com/DetectionTeamUCAS/RetinaNet_Tensorflow_Rotation> （旋转框）
 
-​&emsp;&emsp;&emsp;&emsp;&emsp;<https://github.com/miraclewkf/FocalLoss-MXNet> （优化版的MXNet实现）
+&emsp;&emsp;&emsp;&emsp;&emsp;<https://github.com/miraclewkf/FocalLoss-MXNet> （优化版的MXNet实现）
 
 
 
 ## 1. 介绍
 
-&emsp;&emsp;RBG和Kaiming大神的新作。我们知道object detection的算法主要可以分为两大类：two-stage detector和one-stage detector。前者是指类似Faster RCNN，RFCN这样需要region proposal的检测算法，这类算法可以达到很高的准确率，但是速度较慢。虽然可以通过减少proposal的数量或降低输入图像的分辨率等方式达到提速，但是速度并没有质的提升。后者是指类似YOLO，SSD这样不需要region proposal，直接回归的检测算法，这类算法速度很快，但是准确率不如前者。作者提出focal loss的出发点也是希望one-stage detector可以达到two-stage detector的准确率，同时不影响原有的速度。
+&emsp;&emsp;RBG和Kaiming大神的新作。我们知道object detection的算法主要可以分为两大类：two-stage detector和one-stage detector。前者是指类似Faster RCNN，RFCN这样需要region proposal的检测算法，这类算法可以达到很高的准确率，但是速度较慢，虽然可以通过减少proposal的数量或降低输入图像的分辨率等方式达到提速，但是速度并没有质的提升；后者是指类似YOLO，SSD这样不需要region proposal，直接回归的检测算法，这类算法速度很快，但是准确率不如前者。作者提出focal loss的出发点也是希望one-stage detector可以达到two-stage detector的准确率，同时不影响原有的速度。
 
-&emsp;&emsp;既然有了出发点，那么就要找one-stage detector的准确率不如two-stage detector的原因，作者认为原因是：样本的类别不均衡导致的。我们知道在object detection领域，一张图像可能生成成千上万的candidate locations，但是其中只有很少一部分是包含object的，这就带来了类别不均衡。那么类别不均衡会带来什么后果呢？引用原文讲的两个后果：(1) training is inefficient as most locations are easy negatives that contribute no useful learning signal; (2) en masse, the easy negatives can overwhelm training and lead to degenerate models. 什么意思呢？负样本数量太大，占总的loss的大部分，而且多是容易分类的，因此使得模型的优化方向并不是我们所希望的那样。其实先前也有一些算法来处理类别不均衡的问题，比如OHEM（online hard example mining），OHEM的主要思想可以用原文的一句话概括：In OHEM each example is scored by its loss, non-maximum suppression (nms) is then applied, and a minibatch is constructed with the highest-loss examples。OHEM算法虽然增加了错分类样本的权重，但是OHEM算法忽略了容易分类的样本。
+&emsp;&emsp;既然有了出发点，那么就要找one-stage detector的准确率不如two-stage detector的原因。之前观点认为，“单阶段检测器结果不够好的原因是使用的 feature 不够准确（使用一个位置上的 feature），所以需要Roi Pooling这样的 feature aggregation办法得到更准确的表示”。但是这篇文章基本否认了这个观点，**提出one-stage detector不好的原因在于：1、正负样本比例极度不平衡  2、gradient被大量easy example支配（虽然easy example的loss很低，但是由于数量众多，所以对loss依然有很大贡献，导致收敛到不够好的一个结果），而且这个才是最核心的因素**。我们知道在object detection领域，一张图像可能生成成千上万的candidate locations，但是其中只有很少一部分是包含object的，这就带来了类别不均衡。那么类别不均衡会带来什么后果呢？引用原文讲的两个后果：(1) training is inefficient as most locations are easy negatives that contribute no useful learning signal; (2) en masse, the easy negatives can overwhelm training and lead to degenerate models. 什么意思呢？负样本数量太大，占总的loss的大部分，而且多是容易分类的，因此使得模型的优化方向并不是我们所希望的那样。其实先前也有一些算法来处理类别不均衡的问题，比如OHEM（online hard example mining），OHEM的主要思想可以用原文的一句话概括：“In OHEM each example is scored by its loss, non-maximum suppression (nms) is then applied, and a minibatch is constructed with the highest-loss examples”。**OHEM算法虽然增加了错分类样本的权重，但是OHEM算法忽略了容易分类的样本**。
 
-&emsp;&emsp;因此针对类别不均衡问题，作者提出一种新的损失函数：focal loss，这个损失函数是在标准交叉熵损失基础上修改得到的。这个函数可以通过减少易分类样本的权重，使得模型在训练时更专注于难分类的样本。为了证明focal loss的有效性，作者设计了一个dense detector：RetinaNet，并且在训练时采用focal loss训练。实验证明RetinaNet不仅可以达到one-stage detector的速度，也能有two-stage detector的准确率。
+&emsp;&emsp;因此针对类别不均衡问题，作者提出一种新的损失函数：**focal loss，这个损失函数是在标准交叉熵损失基础上修改得到的。这个函数可以通过减少易分类样本的权重，使得模型在训练时更专注于难分类的样本**。为了证明focal loss的有效性，作者设计了一个dense detector：RetinaNet，并且在训练时采用focal loss训练。实验证明RetinaNet不仅可以达到one-stage detector的速度，也能有two-stage detector的准确率，coco上AP的提升都在3个点左右，非常显著。
 &emsp;&emsp;**focal loss的含义可以看如下Figure1**，横坐标是pt，纵坐标是loss。CE(pt)表示标准的交叉熵公式，FL(pt)表示focal loss中用到的改进的交叉熵，可以看出和原来的交叉熵对比多了一个调制系数（modulating factor）。为什么要加上这个调制系数呢？目的是通过减少易分类样本的权重，从而使得模型在训练时更专注于难分类的样本。首先pt的范围是0到1，所以不管γ是多少，这个调制系数都是大于等于0的。易分类的样本再多，你的权重很小，那么对于total loss的共享也就不会太大。那么怎么控制样本权重呢？举个例子，假设一个二分类，样本x1属于类别1的pt=0.9，样本x2属于类别1的pt=0.6，显然前者更可能是类别1，假设γ=1，那么对于pt=0.9，调制系数则为0.1；对于pt=0.6，调制系数则为0.4，这个调制系数就是这个样本对loss的贡献程度，也就是权重，所以难分的样本（pt=0.6）的权重更大。下图**Figure1中γ=0的蓝色曲线就是标准的交叉熵损失**。<div align="center">
 
 ![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/RetinaNet/1.png)</div>
@@ -93,5 +93,6 @@ Figure4是对比forground和background样本在不同γ情况下的累积误差�
 
 
 
-
 参考：https://blog.csdn.net/u014380165/article/details/77019084 
+
+&emsp;&emsp;&emsp;https://www.zhihu.com/people/naiyan-wang/answers/by_votes

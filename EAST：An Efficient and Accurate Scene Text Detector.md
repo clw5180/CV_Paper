@@ -19,6 +19,72 @@
 
 ![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/EAST/1.png)
 
+这个架构的细节应该包括几个部分：
+
+(1) The algorithm follows the general design of DenseBox [9], in which an image is fed into the FCN andmultiple channels of pixel-level text score map and geometryare generated. 从论文中这句话可以看出，参考了DenseBox的架构，采用FCN网络，同时在多个通道中进行特征层的输出与几何的生成。
+
+(2) 文中采用了两种几何对象，rotated box (RBOX) and quadrangle (QUAD)，通过这两种，可以实现对多方向场景文本的检测。
+
+(3) 采用了Locality-Aware NMS来对生成的文本区域进行过滤，详见lanms文件夹中的C++代码。
+
+- 模型的实现源码如下，从中可以看出文本区域的生成过程：
+
+```python
+def model(images, weight_decay=1e-5, is_training=True):
+    '''
+    define the model, we use slim's implemention of resnet
+    '''
+    images = mean_image_subtraction(images)
+ 
+    with slim.arg_scope(resnet_v1.resnet_arg_scope(weight_decay=weight_decay)):
+        logits, end_points = resnet_v1.resnet_v1_50(images, is_training=is_training, scope='resnet_v1_50')
+ 
+    with tf.variable_scope('feature_fusion', values=[end_points.values]):
+        batch_norm_params = {
+        'decay': 0.997,
+        'epsilon': 1e-5,
+        'scale': True,
+        'is_training': is_training
+        }
+        with slim.arg_scope([slim.conv2d],
+                            activation_fn=tf.nn.relu,
+                            normalizer_fn=slim.batch_norm,
+                            normalizer_params=batch_norm_params,
+                            weights_regularizer=slim.l2_regularizer(weight_decay)):
+            f = [end_points['pool5'], end_points['pool4'],
+                 end_points['pool3'], end_points['pool2']]
+            for i in range(4):
+                print('Shape of f_{} {}'.format(i, f[i].shape))
+            g = [None, None, None, None]
+            h = [None, None, None, None]
+            num_outputs = [None, 128, 64, 32]
+            for i in range(4):
+                if i == 0:
+                    h[i] = f[i]
+                else:
+                    c1_1 = slim.conv2d(tf.concat([g[i-1], f[i]], axis=-1), num_outputs[i], 1)
+                    h[i] = slim.conv2d(c1_1, num_outputs[i], 3)
+                if i <= 2:
+                    g[i] = unpool(h[i])
+                else:
+                    g[i] = slim.conv2d(h[i], num_outputs[i], 3)
+                print('Shape of h_{} {}, g_{} {}'.format(i, h[i].shape, i, g[i].shape))
+ 
+            # here we use a slightly different way for regression part,
+            # we first use a sigmoid to limit the regression range, and also
+            # this is do with the angle map
+            F_score = slim.conv2d(g[3], 1, 1, activation_fn=tf.nn.sigmoid, normalizer_fn=None)
+            # 4 channel of axis aligned bbox and 1 channel rotation angle
+            geo_map = slim.conv2d(g[3], 4, 1, activation_fn=tf.nn.sigmoid, normalizer_fn=None) * FLAGS.text_scale
+            angle_map = (slim.conv2d(g[3], 1, 1, activation_fn=tf.nn.sigmoid, normalizer_fn=None) - 0.5) * np.pi/2 # angle is between [-45, 45]
+            F_geometry = tf.concat([geo_map, angle_map], axis=-1)
+ 
+    return F_score, F_geometry
+```
+
+
+
+
 #### 第一部分：Feature extractor stem(PVANet)
 
 - 先用一个通用的网络(论文中采用的是**PVANet**，实际在使用的时候可以采用VGG16，Resnet等)作为base net ，基于上述主干特征提取网络，提取不同level的不同尺度的feature map（它们的尺寸分别是input-image的1/32， 1/16， 1/8， 1/4）并用于后期的特征组合（concatenate），目的是解决文本行尺度变换剧烈的问题；检测大块区域的文本需要神经网络后级的高阶特征，而检测小块区域的文本需要前级的低阶信息。
@@ -241,3 +307,5 @@ def loss(y_true_cls, y_pred_cls,
 - 在检测曲线文本时，效果不太理想
 
 主要参考：<https://blog.csdn.net/zhangwei15hh/article/details/79899300>
+
+&emsp;&emsp;&emsp;&emsp;&emsp;https://blog.csdn.net/sparkexpert/article/details/77987654 
