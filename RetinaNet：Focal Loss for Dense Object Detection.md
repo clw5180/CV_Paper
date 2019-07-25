@@ -12,7 +12,7 @@
 
 
 
-## 1. 介绍
+## 一、介绍
 
 &emsp;&emsp;RBG和Kaiming大神的新作。我们知道object detection的算法主要可以分为两大类：two-stage detector和one-stage detector。前者是指类似Faster RCNN，RFCN这样需要region proposal的检测算法，这类算法可以达到很高的准确率，但是速度较慢，虽然可以通过减少proposal的数量或降低输入图像的分辨率等方式达到提速，但是速度并没有质的提升；后者是指类似YOLO，SSD这样不需要region proposal，直接回归的检测算法，这类算法速度很快，但是准确率不如前者。作者提出focal loss的出发点也是希望one-stage detector可以达到two-stage detector的准确率，同时不影响原有的速度。
 
@@ -31,7 +31,7 @@ Figure2是在是在COCO数据集上几个模型的实验对比结果。可以看
 
 ![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/RetinaNet/3.png)</div>
 
-## 2. 主要内容
+## 二、主要内容
 
 &emsp;&emsp;看完实验结果和提出算法的出发点，接下来就要介绍focal loss了。在介绍focal loss之前，先来看看交叉熵损失，这里以二分类为例，p表示概率，公式如下：<div align="center">
 
@@ -75,7 +75,7 @@ Figure2是在是在COCO数据集上几个模型的实验对比结果。可以看
 
 
 
-## 3. 实验结果
+## 三、实验结果
 
 &emsp;&emsp;Table1是关于RetinaNet和Focal Loss的一些实验结果。（a）是在交叉熵的基础上加上参数a，a=0.5就表示传统的交叉熵，可以看出当a=0.75的时候效果最好，AP值提升了0.9。（b）是对比不同的参数γ和a的实验结果，可以看出随着γ的增加，AP提升比较明显。（d）通过和OHEM的对比可以看出最好的Focal Loss比最好的OHEM提高了3.2AP。这里OHEM1:3表示在通过OHEM得到的minibatch上强制positive和negative样本的比例为1:3，通过对比可以看出这种强制的操作并没有提升AP。（e）加入了运算时间的对比，可以和前面的Figure2结合起来看，速度方面也有优势！注意这里RetinaNet-101-800的AP是37.8，当把训练时间扩大1.5倍同时采用scale jitter，AP可以提高到39.1，这就是全文和table2中的最高的39.1AP的由来。<div align="center">
 
@@ -87,7 +87,7 @@ Figure4是对比forground和background样本在不同γ情况下的累积误差�
 
 
 
-## 4. 结论
+## 四、结论
 
 &emsp;&emsp;原文的这段话概括得很好：**In this work, we identify class imbalance as the primary obstacle preventing one-stage object detectors from surpassing top-performing, two-stage methods, such as Faster R-CNN variants. To address this, we propose the focal loss which applies a modulating term to the cross entropy loss in order to focus learning on hard examples and down-weight the numerous easy negatives.**
 
