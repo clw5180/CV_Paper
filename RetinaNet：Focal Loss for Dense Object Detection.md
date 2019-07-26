@@ -16,7 +16,7 @@
 
 &emsp;&emsp;RBG和Kaiming大神的新作。我们知道object detection的算法主要可以分为两大类：two-stage detector和one-stage detector。前者是指类似Faster RCNN，RFCN这样需要region proposal的检测算法，这类算法可以达到很高的准确率，但是速度较慢，虽然可以通过减少proposal的数量或降低输入图像的分辨率等方式达到提速，但是速度并没有质的提升；后者是指类似YOLO，SSD这样不需要region proposal，直接回归的检测算法，这类算法速度很快，但是准确率不如前者。作者提出focal loss的出发点也是希望one-stage detector可以达到two-stage detector的准确率，同时不影响原有的速度。
 
-&emsp;&emsp;既然有了出发点，那么就要找one-stage detector的准确率不如two-stage detector的原因。之前观点认为，“单阶段检测器结果不够好的原因是使用的 feature 不够准确（使用一个位置上的 feature），所以需要Roi Pooling这样的 feature aggregation办法得到更准确的表示”。但是这篇文章基本否认了这个观点，**提出one-stage detector不好的原因在于：1、正负样本比例极度不平衡  2、gradient被大量easy example支配（虽然easy example的loss很低，但是由于数量众多，所以对loss依然有很大贡献，导致收敛到不够好的一个结果），而且这个才是最核心的因素**。我们知道在object detection领域，一张图像可能生成成千上万的candidate locations，但是其中只有很少一部分是包含object的，这就带来了类别不均衡。那么类别不均衡会带来什么后果呢？引用原文讲的两个后果：(1) training is inefficient as most locations are easy negatives that contribute no useful learning signal; (2) en masse, the easy negatives can overwhelm training and lead to degenerate models. 什么意思呢？负样本数量太大，占总的loss的大部分，而且多是容易分类的，因此使得模型的优化方向并不是我们所希望的那样。其实先前也有一些算法来处理类别不均衡的问题，比如OHEM（online hard example mining），OHEM的主要思想可以用原文的一句话概括：“In OHEM each example is scored by its loss, non-maximum suppression (nms) is then applied, and a minibatch is constructed with the highest-loss examples”。**OHEM算法虽然增加了错分类样本的权重，但是OHEM算法忽略了容易分类的样本**。
+&emsp;&emsp;既然有了出发点，那么就要找one-stage detector的准确率不如two-stage detector的原因。之前观点认为，“单阶段检测器结果不够好的原因是使用的 feature 不够准确（使用一个位置上的 feature），所以需要Roi Pooling这样的 feature aggregation办法得到更准确的表示”。但是这篇文章基本否认了这个观点，**提出one-stage detector不好的原因在于：1、正负样本比例极度不平衡，negative example过多导致loss太大，positive的loss被淹没，不利于收敛  2、gradient被大量easy example支配（虽然easy example的loss很低，但是由于数量众多，所以对loss依然有很大贡献，导致收敛到不够好的一个结果），而且这个才是最核心的因素**。我们知道在object detection领域，一张图像可能生成成千上万的candidate locations，但是其中只有很少一部分是包含object的，这就带来了类别不均衡。那么类别不均衡会带来什么后果呢？引用原文讲的两个后果：(1) training is inefficient as most locations are easy negatives that contribute no useful learning signal; (2) en masse, the easy negatives can overwhelm training and lead to degenerate models. 什么意思呢？负样本数量太大，占总的loss的大部分，而且多是容易分类的，因此使得模型的优化方向并不是我们所希望的那样。其实先前也有一些算法来处理类别不均衡的问题，比如OHEM（online hard example mining），OHEM的主要思想可以用原文的一句话概括：“In OHEM each example is scored by its loss, non-maximum suppression (nms) is then applied, and a minibatch is constructed with the highest-loss examples”。**OHEM算法虽然增加了错分类样本的权重，但是OHEM算法忽略了容易分类的样本**。
 
 &emsp;&emsp;因此针对类别不均衡问题，作者提出一种新的损失函数：**focal loss，这个损失函数是在标准交叉熵损失基础上修改得到的。这个函数可以通过减少易分类样本的权重，使得模型在训练时更专注于难分类的样本**。为了证明focal loss的有效性，作者设计了一个dense detector：RetinaNet，并且在训练时采用focal loss训练。实验证明RetinaNet不仅可以达到one-stage detector的速度，也能有two-stage detector的准确率，coco上AP的提升都在3个点左右，非常显著。
 &emsp;&emsp;**focal loss的含义可以看如下Figure1**，横坐标是pt，纵坐标是loss。CE(pt)表示标准的交叉熵公式，FL(pt)表示focal loss中用到的改进的交叉熵，可以看出和原来的交叉熵对比多了一个调制系数（modulating factor）。为什么要加上这个调制系数呢？目的是通过减少易分类样本的权重，从而使得模型在训练时更专注于难分类的样本。首先pt的范围是0到1，所以不管γ是多少，这个调制系数都是大于等于0的。易分类的样本再多，你的权重很小，那么对于total loss的共享也就不会太大。那么怎么控制样本权重呢？举个例子，假设一个二分类，样本x1属于类别1的pt=0.9，样本x2属于类别1的pt=0.6，显然前者更可能是类别1，假设γ=1，那么对于pt=0.9，调制系数则为0.1；对于pt=0.6，调制系数则为0.4，这个调制系数就是这个样本对loss的贡献程度，也就是权重，所以难分的样本（pt=0.6）的权重更大。下图**Figure1中γ=0的蓝色曲线就是标准的交叉熵损失**。<div align="center">
@@ -53,25 +53,51 @@ Figure2是在是在COCO数据集上几个模型的实验对比结果。可以看
 
 </div>
 
-这里的γ称作focusing parameter，γ>=0。<div align="center">
+这里的γ称作focusing parameter，γ>=0。作者在这里给了一个直观的例子：“**For instance, with γ = 2, an**
+**example classified with pt = 0:9 would have 100× lower loss compared with CE and with pt ≈ 0:968 it would have 1000× lower loss**. This in turn increases the importance of correcting misclassified examples (whose loss is scaled down by at most 4× for pt ≤ 0.5 and γ = 2) ；
+
+<div align="center">
 
 ![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/RetinaNet/8.png)
 
 </div>
 
 称为调制系数（modulating factor） 。
-**这里介绍下focal loss的两个重要性质：1、当一个样本被分错的时候，pt是很小的（请结合公式2，比如当y=1时，p要小于0.5才是错分类，此时pt就比较小，反之亦然），因此调制系数就趋于1，也就是说相比原来的loss是没有什么大的改变的。当pt趋于1的时候（此时分类正确而且是易分类样本），调制系数趋于0，也就是对于总的loss的贡献很小。2、当γ=0的时候，focal loss就是传统的交叉熵损失，当γ增加的时候，调制系数也会增加。** 
-**focal loss的两个性质算是核心，其实就是用一个合适的函数去度量难分类和易分类样本对总的损失的贡献。**
+**focal loss的两个重要性质：当一个样本被分错的时候，pt是很小的（比如当y=1时，p一般小于0.5被认为是错分类，此时pt就比较小），因此调制系数就趋于1，也就是说相比原来的loss是没有什么大的改变的。当pt趋于1的时候，此时分类正确而且是易分类样本，调制系数趋于0，也就是对于总的loss的贡献很小。** 
 
 **作者在实验中采用的是公式5的focal loss（结合了公式（3）和公式（4），这样既能调整正负样本的权重，又能控制难易分类样本的权重）：**<div align="center">
 
 ![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/RetinaNet/9.png)</div>
 
-在实验中a的选择范围也很广，一般而言当γ增加的时候，a需要减小一点（实验中γ=2，a=0.25的效果最好）
+在实验中a的选择范围也很广，一般而言当γ增加的时候，a需要减小一点（实验中**γ=2，a=0.25的效果最好**）
 
-贴一下RetinaNet的结构图如下，因为网络结构不是本文的重点，所以这里就不详细介绍了，感兴趣的可以看论文的第4部分。<div align="center">
+
+
+**RetinaNet的结构图**如下：<div align="center">
 
 ![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/RetinaNet/10.png)</div>
+
+**Feature Pyramid Network Backbone：**
+**FPN** 作为 Backbone。它在ResNet网络上**增加了top-down(自顶向下)通路和lateral(侧向连接)通路**，从图片的单一分辨率构建丰富的、多尺度的特征金字塔。**金字塔的每一层特征用来检测不同尺寸的目标**。
+本文FPN**由P3-P7构成**（Pn层的分辨率和输入图像相比缩小2^n倍），P3-P5是由ResNet的C3-C5计算，P6是由C5使用stride=2的3X3卷积得到，P7是由P6经过stride=2的3x3卷积得到，特征金字塔所有层的Channel=256。与原始的FPN不同之处在于：（1）**这里没有使用P2层，作者说是for computional reasons**；（2）**P6是由stride=2的卷积得到不是降采样**；（3）**引入P7层提升对大尺寸目标的检测效果**。
+需要强调的是使用FPN作为主干网的原因是，实验发现如果只使用ResNet层，最终mAP值较低。
+
+**Anchors：**
+类似RPN具有平移不变性的anchor boxes。从P3到P7层的anchors的面积从32x32依次增加到512x512。每层anchors ratios（长宽比）包括{1:2, 1:1, 2:1}。每层scales包括{2^0, 2^1/3, 2^2/3}；这样每层有9个anchors，通过不同层覆盖了输入图像 32~813 像素区间。
+每个Anchor会有长度为K(class)的one-hot分类目标和4-vector的box回归目标。这里作者仿照RPN的做法，但是做了一些修改：
+(1) 对于anchor是否与GT关联，依然根据二者IOU的阈值，这里设置为0.5（RPN是0.7），即如果IOU大于0.5，则anchors和GT关联；IOU在[0, 0.4)作为背景。
+(2) 每个anchor最多关联一个GT；K(class)的one-hot中关联的类别为1，其它为0。
+(3) 边框回归就是计算anchor到关联的GT之间的偏移。
+
+**Classification Subnet：**
+ 连接在FPN每层的FCN，参数共享。Feature Map，使用4个3×3的卷积层，每个卷积层接一个ReLU层，然后是channel=KA(K是类别数，A是anchor数)的3×3卷积层，最后使用sigmoid激活函数。
+与RPN相比，网络更深，只使用了3×3卷积；不和边框回归子网络共享参数。
+
+**Box Regression Subnet：**
+ 结构同上，最后一层channel=4A。
+
+**Inference and Training：**
+**Inference：**为了提高速度，只对FPN每层部分predictions处理。FPN的每个特征层，首先使用0.05的阈值筛选出是前景的object，最多选取前1k个predictions进行后续处理。融合各层的predictions，再使用NMS（阈值0.5）去掉重叠box。
 
 
 
