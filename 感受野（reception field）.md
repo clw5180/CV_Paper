@@ -16,7 +16,7 @@ field on the input image is large (171 and 228 pixels for ZF and VGG, respective
 
 　　学习R-CNN系列论文时，经常出现感受野（receptive field）这个名词，在这里介绍一下感受野的大小是如何计算的。在卷积神经网络中，感受野的定义是卷积神经网络每一层输出的特征图（feature map）上的像素点在原始图像上映射的区域大小。（自注：即，输出特征图上的1个像素点在原图像上映射区域的尺寸）
 
-　　![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/感受野/1.png)
+　　![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/感受野/1.png)
 
 　　R-CNN论文中有一段描述，AlexNet网络pool5输出的特征图上的像素在输入图像上有很大的感受野（have very large receptive fields (195 × 195 pixels)）和步长（strides (32×32 pixels) ）， 这两个变量的数值是如何得出的呢？
 
@@ -46,7 +46,7 @@ for layer in reversed(range(layernum)):
 	RF = ((RF -1) * stride) + fsize            # for layer in （top layer To down layer）
 ```
 
-　　**stride** 表示**卷积的步长**； **fsize**表示卷积层**滤波器的大小**。　　
+　　**stride** 表示**卷积的步长**； **fsize**表示卷积层**滤波器的大小**。自注：其实 RF = ((RF -1) * stride) + fsize 这个公式就是n_out = ( n + 2p - f ) / s + 1 倒推输入尺寸n；　　
 
 　　用python实现了计算**AlexNet**、**ZF-5**和**VGGNet-16**网络每层输出feature map的感受野大小，代码如下：
 
@@ -97,7 +97,7 @@ if __name__ == '__main__':
 
 　　执行后的结果如下：
 
-![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/感受野/2.png)
+![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/感受野/2.png)
 
 　　回到最开始的问题，之前我的观点是：RPN网络分两个子层，一个3x3卷积层和两个1x1的（anchor）卷积层，其中3x3卷积是在conv5的feature map上进行。对于VGGNet-16，conv5相比原图像缩小了16倍，映射到原图上就是16x16的区域，为什么会是228x228？经过了上面的总结后才明白：首先，感受野并不是输入尺寸和输出尺寸的比值，而是输出特征图上的1个像素点在原始图像上映射区域的尺寸大小；其次，上面计算3x3卷积核其中的**1x1区域对应的感受野196**（另外pool5是212，见上图），3x3的感受野应该是**196+16+16=228**，这里的16是对应到原图的**积累步长**，计算方法同样参考上面的公式。
 

@@ -49,9 +49,9 @@
 
 1、特征提取（自注：以下参考 <https://www.cnblogs.com/wangyong/p/8513563.html>，值得学习！）
 
-&emsp;&emsp;Faster RCNN首先是支持输入任意大小的图片的，比如上图中输入的P*Q，进入网络之前对图片进行了规整化尺度的设定，如可设定图像短边不超过600（自注：统一缩放图像短边至600像素），图像长边不超过1000，我们可以假定M*N=1000*600（如果图片少于该尺寸，可以边缘补0，即图像会有黑色边缘）
+&emsp;&emsp;Faster RCNN首先是支持输入任意大小的图片的，比如上图中输入的PxQ，进入网络之前对图片进行了规整化尺度的设定，如可设定图像短边不超过600（自注：统一缩放图像短边至600像素），图像长边不超过1000，我们可以假定MxN=1000*600（如果图片少于该尺寸，可以边缘补0，即图像会有黑色边缘）
 
-①   13个conv层：kernel_size=3,pad=1,stride=1;
+①   13个conv层：kernel_size=3, pad=1, stride=1;
 
 &emsp;&emsp;卷积公式：
 
@@ -61,21 +61,21 @@
 
 ②   13个relu层：激活函数，不改变图片大小
 
-③   4个pooling层：kernel_size=2,stride=2;pooling层会让输出图片是输入图片的1/2
+③   4个pooling层：kernel_size=2, stride=2; pooling层会让输出图片是输入图片的1/2
 
-&emsp;&emsp;经过Conv layers，图片大小变成(M/16)*(N/16)，即：60*40(1000/16≈60,600/16≈40)；则，Feature Map就是60*40*256-d(注：VGG16的conv输出是512-d,而ZF是256-d)，表示Feature Map的大小为60*40，通道数为256；
+&emsp;&emsp;经过Conv layers，图片大小变成 (M / 16) x (N / 16) ，即：60x40 (1000 / 16 ≈ 60, 600 / 16 ≈ 40)；则，Feature Map就是60x40x256-d (注：VGG16的conv输出是512-d,而ZF是256-d)，表示Feature Map的大小为60x40，通道数为256；
 
-&emsp;&emsp;在Feature Map进入RPN后，先经过一次n*n的卷积（原文是用的3*3），个人感觉是用了padding，故能够保证输出大小依然是60*40，数量是256（针对VGG16，如果是ZF则是256，论文中图上给的是256d，个人感觉这个256d指的是256个尺寸依然是60*40的feature map，不知是否正确...），这样做的目的应该是进一步集中特征信息。接着看到两个全卷积，即kernel_size=1*1，p=0，stride=1；
+&emsp;&emsp;在Feature Map进入RPN后，先经过一次n*n的卷积（原文是用的3*3），个人感觉是用了padding，故能够保证输出大小依然是60x40，数量是256（针对VGG16，如果是ZF则是256，论文中图上给的是256d，个人感觉这个256d指的是256个尺寸依然是60x40的feature map，不知是否正确...），这样做的目的应该是进一步集中特征信息。接着看到两个全卷积，即kernel_size=1x1，p=0，stride=1；
 
 ![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/FasterRCNN/6.png)
 
 如上图中标识：
 
-①   rpn_cls：60*40*512-d ⊕  1*1*512*18 ==> 60*40*9*2 
+①   rpn_cls：60x40x512-d ⊕  1x1x512x18 ==> 60x40x9x2 
 
 &emsp;&emsp;逐像素对其9个Anchor box进行二分类
 
-②   rpn_bbox：60*40*512-d ⊕  1*1*512*36==>60*40*9*4
+②   rpn_bbox：60x40x512-d ⊕  1x1x512x36==>60x40x9x4
 
 &emsp;&emsp;逐像素得到其9个Anchor box四个坐标信息（其实是偏移量，后面介绍）
 
@@ -89,7 +89,7 @@
 
 2、候选区域(anchor)
 
-&emsp;&emsp;前面提到经过Conv layers后，图片大小变成了原来的1/16，令feat_stride=16，在生成Anchors时，我们先定义一个base_anchor，大小为16x*16的box(因为特征图(60*x40)上的一个点，可以对应到原图（1000x600）上一个16x16大小的区域)，源码中转化为[0,0,15,15]的数组（自注：？），参数ratios=[0.5, 1, 2]  scales=[8, 16, 32] （自注：scales对应到原图是128,256,512）
+&emsp;&emsp;前面提到经过Conv layers后，图片大小变成了原来的1/16，令feat_stride=16，在生成Anchors时，我们先定义一个base_anchor，大小为16x*16的box(因为特征图(60*x40)上的一个点，可以对应到原图（1000x600）上一个16x16大小的区域)，源码中转化为[0,0,15,15]的数组（自注：？），参数ratios=[0.5, 1, 2]  scales=[8, 16, 32] （自注：scales对应到原图是128, 256, 512）
 
 &emsp;&emsp;先看[0,0,15,15],面积保持不变，长、宽比分别为[0.5, 1, 2]是产生的Anchors box
 
@@ -107,15 +107,15 @@
 
 ![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/FasterRCNN/11.png)
 
-&emsp;&emsp;特征图大小为60*40，所以会一共生成60*40*9=21600个Anchor box。
+&emsp;&emsp;特征图大小为60x40，所以会一共生成60x40x9=21600个Anchor box。
 
-&emsp;&emsp;源码中，通过width:(0~60)*16,height(0~40)*16建立shift偏移量数组，再和base_anchor基准坐标数组累加，得到特征图上所有像素对应的Anchors的坐标值，是一个[216000,4]的数组
+&emsp;&emsp;源码中，通过width:(0~60)x16, height(0~40)x16建立shift偏移量数组，再和base_anchor基准坐标数组累加，得到特征图上所有像素对应的Anchors的坐标值，是一个[216000, 4]的数组
 
 
 
 &emsp;&emsp;注：通过中心点和size就可以得到滑窗位置和原图位置的映射关系，由此原图位置并根据与Ground Truth重复率贴上正负标签，让RPN学习该Anchors是否有物体即可；另外，论文中也提到了，相比于只采用单一尺度和长宽比，单尺度多长宽比和多尺度单长宽比都能提升mAP，表明多size的anchors可以提高mAP，作者在这里选取了最高mAP的3种尺度和3种长宽比）
 
-&emsp;&emsp;通过增加一个3x3滑动窗口操作以及两个卷积层1*1卷积层完成区域建议功能；对得分区域进行非极大值抑制后输出得分Top-N【文中为300】区域，告诉检测网络应该注意哪些区域，本质上实现了Selective Search、EdgeBoxes等方法的功能。
+&emsp;&emsp;通过增加一个3x3滑动窗口操作以及两个卷积层1x1卷积层完成区域建议功能；对得分区域进行非极大值抑制后输出得分Top-N【文中为300】区域，告诉检测网络应该注意哪些区域，本质上实现了Selective Search、EdgeBoxes等方法的功能。
 
 &emsp;&emsp;Faster R-CNN使用RPN生成候选框后，剩下的网络结构和Fast R-CNN中的结构一模一样。在训练过程中，需要训练两个网络，一个是RPN网络，一个是在得到框之后使用的分类网络。通常的做法是交替训练，即在一个batch内，先训练RPN网络一次，再训练分类网络一次。
 
