@@ -109,7 +109,7 @@ def restnet_head(input, is_training, scope_name):
 
 #### Anchor详解
 
-&emsp;&emsp;前面提到经过Conv layers后，图片大小变成了原来的1/16，令feat_stride=16，在生成Anchors时，我们先定义一个base_anchor，大小为16x16的box（因为特征图(60x40)上的一个点，可以对应到原图（1000x600）上一个16x16大小的区域），源码中转化为[0, 0, 15, 15]的数组（自注：？），参数ratios=[0.5, 1, 2]  scales=[8, 16, 32] （自注：scales需要换算到原图，对应大小是128, 256, 512）
+&emsp;&emsp;前面提到经过Conv layers后，图片大小变成了原来的1/16，令feat_stride=16，在生成Anchors时，我们先定义一个base_anchor，大小为16x16的box（因为60x40的特征图上的一个点，可以对应到原图（1000x600）上一个16x16大小的区域），源码中转化为**[0, 0, 15, 15]**的数组（TODO：这个是什么意思？），参数ratios=[0.5, 1, 2]  scales=[8, 16, 32] （自注：scales需要换算到原图，对应大小是128, 256, 512）
 
 ![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FasterRCNN/8.png)
 
@@ -117,15 +117,15 @@ def restnet_head(input, is_training, scope_name):
 
 ![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FasterRCNN/9.png)
 
-&emsp;&emsp;另外，论文中提到不同anchor学习到的proposal的平均尺寸如下表，可以看出和上面计算的还是很接近。
+&emsp;&emsp;另外，论文中提到不同anchor学习到的proposal的平均尺寸如下表，这个值是怎么来的？为什么同样是anchor_scale = 128，ratio=2:1和ratio=1:2差这么多？
 
-![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FasterRCNN/8_0.png)
+![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FasterRCNN/9_0.png)
 
 &emsp;&emsp;综上，根据3个scales和3个ratios，生成9个Anchor box。
 
 ![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FasterRCNN/10.png)
 
-&emsp;&emsp;所以，最终base_anchor=[0,0,15,15]生成的9个Anchor box坐标如下：
+&emsp;&emsp;所以，最终base_anchor=[0,0,15,15]生成的9个Anchor box坐标如下（TODO：这个值还是没太明白怎么得到的，可以再看下anchor.md的笔记研究一下）：
 
 ![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FasterRCNN/11.png)
 
