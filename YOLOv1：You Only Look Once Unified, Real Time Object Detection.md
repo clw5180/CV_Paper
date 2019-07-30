@@ -32,7 +32,7 @@
 
 &emsp;&emsp;从图中可以看到，yolo网络的输出的网格是7x7大小的（自注：对于输入448x448，相当于下采样到原来的1 / 64），另外，输出的channel数目为30。一个cell内，前20个元素是类别概率值，然后2个元素是边界框confidence，最后8个元素是边界框的 (x, y, w, h) 。
 
-![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/YOLOv1/2.png)
+![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/YOLOv1/2_0.png)
 
 &emsp;&emsp;也就是说，每个cell有两个predictor，每个predictor分别预测一个bounding box的x，y，w，h和相应的confidence。但分类部分的预测却是共享的。**因此同一个cell内是没办法预测多个目标的**。（注：如果一个cell要预测两个目标，那么这两个predictor要怎么分工预测这两个目标？谁负责谁？不知道，所以没办法预测。**而像faster rcnn这类算法，可以根据anchor与ground truth的IOU大小来安排anchor负责预测哪个物体，所以后来yolo2也采用了anchor思想，同个cell才能预测多个目标**）
 
@@ -44,27 +44,27 @@
 
 ![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/YOLOv1/3.png)
 
-一个问题：在测试阶段，输出的confidece怎么算？还是通过Pr(object)和IOU计算吗？可是如果这样的话，测试阶段根本没有ground truth，那怎么计算IOU？
-
-实际上，在测试阶段，网络只是输出了confidece这个值，但它已经包含了 Pr(object) * IOU ，并不需要分别计算Pr(object) 和 IOU（也没办法算）。为什么？因为你在训练阶段你给confidence打label的时候，给的是 Pr(object) * IOU 这个值，你在测试的时候，网络吐出来的也就是这个值。  
+**注意：实际上，在测试阶段，网络只是输出了confidence这个值**，它已经包含了 Pr(object) * IOU ，而不是用Pr(object) * IOU来计算的（以为没有gt，没办法算）。在训练阶段，置信度的衡量标准是 score = Pr(object) * IOU 这个值，**而在测试的时候，网络会直接吐出来score这个值**。  
 
 
 
 **Bounding box预测**
 
-bounding box的预测包括xywh四个值。xy表示bounding box的中心相对于cell左上角坐标偏移，宽高则是相对于整张图片的宽高进行归一化的。偏移的计算方法如下图所示。
+bounding box的预测包括**x, y, w, h**四个值。**x和y表示bounding box的中心相对于当前所在cell的左上角坐标（自注：这里的“坐标”是以单元格在宽高方向上的个数为基准，比如row=1，col=4，而不是以图片的宽高为基准）偏移**；w和h则是相对于整张图片的宽高进行归一化的。
+
+**偏移的计算方法**如下图所示。
 
 ![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/YOLOv1/4.png)
 
-举例：比如S=10即一共10 x 10个grid，原图的宽高均为70pixels，加入某个x的坐标是38.5，则有38.5 x 10 / 70 - 5 = 0.55，可以看到恰好是归一化后的x坐标，简单推导一下就能看出来，原来坐标35的x是0.5，原来坐标42的x是0.6。
+**举例说明**：比如上图S=10即一共10 x 10个grid，原图的宽高均为70pixels，假如某个x在原图上的坐标是38.5，则有38.5 x 10 / 70 - 5 = 0.5，说明bbox的中心点位于当前cell的中心；简单证明一下，原图宽高为70x70，那么归一化之后原图坐标x=38.5的位置对应x=0.5，x=42归一化后对应x=0.6，则38.5这个位置恰好在中间，即x=0.55，为归一化后的x坐标，但这里又算的是相对当前cell左上角的偏移，因此x=(0.55-0.5) / (0.6-0.5) = 0.5，相当于偏离了一半，也就是在中间位置。 
 
-xywh为什么要这么表示呢？实际上经过这么表示之后，x，y，w，h都归一化了，它们的值都是在0 ~ 1之间。我们通常做回归问题的时候都会将输出进行归一化，否则可能导致各个输出维度的取值范围差别很大，进而导致训练的时候，网络更关注数值大的维度。因为数值大的维度，算loss相应会比较大，为了让这个loss减小，那么网络就会尽量学习让这个维度loss变小，最终导致区别对待。
-
-坐标归一化各参数含义详解如下：
+**再举一例做详细说明**：
 
 ![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/YOLOv1/4_0.png)
 
+![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/YOLOv1/4_1.png)
 
+**原因**：实际上经过这么表示之后，x，y，w，h都归一化了，它们的值都是在0 ~ 1之间。我们**通常做回归问题的时候都会将输出进行归一化，否则可能导致各个输出维度的取值范围差别很大，进而导致训练的时候，网络更关注数值大的维度。因为数值大的维度，算loss相应会比较大，为了让这个loss减小，那么网络就会尽量学习让这个维度loss变小，最终导致区别对待**。
 
 
 
@@ -86,14 +86,16 @@ loss如下：
 
 ![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/YOLOv1/6_0.png)
 
-三者的损失类型均为均方损失函数，不同是在三部分损失前均有相应的权重系数来衡量三者各自的重要性。
+**三部分损失**的类型都为**均方和误差**，**不同是前面的权重系数，用来衡量三者各自的重要性**。
+
+自注：论文中提到：“We set λcoord = 5 and λnoobj = 0.5”，说明两点：**1、**位置相关误差（坐标、IOU）与分类误差对网络loss的贡献值是不同的，因此YOLO在计算loss时，使用λcoord =5修正coordError。**2、**在计算IOU误差时，包含物体的格子与不包含物体的格子，二者的IOU误差对网络loss的贡献值是不同的，**主要惩罚的是包含物体的grid cells**，要使其损失接近于零；**“我们不需要一个能够判断哪些背景的检测器，而是需要一个能够发现哪些是object的检测器”**；还有一点，小的box的偏移带来的影响要超过大的box偏移，为强调这一点，预测的是box宽和高的平方根而不是其本身。
 
 关于loss，需要特别注意的是需要计算loss的部分。并不是网络的输出都算loss，具体地说：
 
-1. 有物体中心落入的cell，需要计算分类loss，两个predictor都要计算confidence loss，预测的bounding box与ground truth IOU比较大的那个predictor需要计算x，y，w，h的loss。
-2. 特别注意：没有物体中心落入的cell，只需要计算confidence loss。
+1. 有物体中心落入的cell的情况：1、预测的bounding box与ground truth IoU比较大的那个predictor需要计算x，y，w，h的loss；2、预测的bounding box与ground truth IoU比较大的那个predictor要计算confidence loss；3、两个predictor都需要计算分类loss；
+2. 没有物体中心落入的cell的情况：只需要计算confidence loss。
 
-另外，我们发现每一项loss的计算都是L2 loss，即使是分类问题也是。所以说yolo是把分类问题转为了回归问题。
+另外，我们发现**每一项loss的计算都是L2 loss，即使是分类问题也是。所以说YOLO是把分类问题转为了回归问题**。
 
 
 
@@ -106,4 +108,4 @@ loss如下：
 ## 四. 结论
 
 * YOLOv1优点：1.速度快  2.在检测物体时能很好的利用上下文信息，不容易在背景上预测出错误的物体信息
-* YOLOv1缺点：1.容易产生物体的定位错误。2.对小物体的检测效果不好（尤其是密集的小物体，因为同一cell只能预测2个物体，且不能预测同一类物体）。
+*  缺点：1.容易产生物体的定位错误。2.对小物体的检测效果不好（尤其是密集的小物体，因为同一cell只能预测2个物体，且不能预测同一类物体）。
