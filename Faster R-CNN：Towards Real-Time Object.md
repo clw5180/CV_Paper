@@ -378,5 +378,34 @@ layer
   文中提到对于1000×600的一张图像，大约有20000(~62×37×9)个anchors，忽略超出边界的anchors剩下6000个anchors，利用非极大值抑制去掉重叠区域，剩2000个区域建议用于训练；测试时在2000个区域建议中选择Top-N【文中为300】个区域建议用于Fast R-CNN检测。
 
 
+- hard negative mining（ 难分样本挖掘）是如何实现的？
+
+  链接：https://www.zhihu.com/question/46292829/answer/628723483
+
+  网友1：在训练分类器的时候，对不同的类别，都需要一定的正样本，这个正样本的数据集来源就是，生成的proposals与某个标注数据的ground true重叠区域（IoU）大于某个阈值，这个proposal才会被作为这个类别的正样本。在Fast R-CNN中，proposals是由Selective Search算法给出的，这些proposals里包含有“背景”，和“其他物体”，值得注意的是，这个“其他物体”不一定是我们训练的类别。所以这就会产生一个问题，对于一副图像，我们要检测“人”，但实际图像中只有一个或是两个人。虽然我们生成了不少（~2k）的proposals，但这些proposals里跟人的标注数据的ground true的IoU大于某个阈值的（比如0.5），其实并不多。因为proposals不是专门为某个类别（这里的例子是“人”）而生成的。负样本过多会造成，正样本大概率被预测为负样本。因此**作者使用随机抽样的方式，抽取25%正样本，75%的负样本**。（注：为何是1:3, 而不是1:1呢? 可能是正样本太少了, **如果 1:1 的话, 一张图片处理的 RoI 就太少了, 不能充分的利用 RoI Pooling 前一层的共享计算, 训练的效率就太低了, 但是负例比例也不能太高了, 否则算法会出现上面所说的 false negative 太多的现象, 选择 1:3 这个比例是算法在性能和效率上的一个折中考虑, 同时 OHEM(online hard example mining)一文中也提到负例比例设的太大, Fast RCNN 的 mAP将有很大的下降**  https://www.cnblogs.com/nowgood/p/Hardexamplemining.html ）
+
+  **但为什么要设置proposals【0.1<=IoU<0.5】为负样本，而proposals【IoU<0.1】作为难样本挖掘(hard negative mining)呢？不是要拿proposals【0.1<=IoU<0.5】这些容易分错的来做难样本挖掘吗**？其实按道理应该从源码上去看作者是怎么实现的，不过由于我还没看，我先给出我一个自己的想法。
+
+  proposals【0.1<=IoU<0.5】实际上已经是作为hard negative去训练了，因为负样本的随机抽样就是从这里面抽取的。但这样的样本可能不多。
+
+  而proposals【IoU<0.1】，这些样本数量比较多，而里面可能也会有让分类器误判的样本。当我们第一轮用proposals【0.1<=IoU<0.5】和【IoU>=0.5】抽样的样本，训练出来的模型，去预测proposals【IoU<0.1】的样本，如果判断错误就加入hard negative的集合里，这样就实现了对proposals【IoU<0.1】的hard negatvie mining。
+
+
+
+  网友2：**我们可以先验的认为, 如果 RoI 里没有物体，全是背景，这时候分类器很容易正确分类成背景，这个就叫 easy negative, 如果RoI里有二分之一个物体，标签仍是负样本，这时候分类器就容易把他看成正样本，这时候就是 hard negative**。
+
+  确实, 不是一个框中背景和物体越混杂, 越难区分吗? 框中都基本没有物体特征, 不是很容易区分吗?
+
+  那么我认为 Fast RCNN 也正是这样做的, 为了解决正负样本不均衡的问题（负例太多了）, 我们应该剔除掉一些容易分类负例, 那么与 ground truth 的 IOU 在 [0, 0.1)之间的由于包含物体的特征很少, 应该是很容易分类的, 也就是说是 easy negitive, 为了让算法能够更加有效, 也就是说让算法更加专注于 hard negitive examples, 我们认为 hard negitive examples 包含在[0.1, 0.5) 的可能性很大, 所以训练时, 我们就在[0.1, 0.5)区间做 random sampling, 选择负例.
+
+  **我们先验的认为 IoU 在[0, 0.1)之内的是 easy example, 但是, [0, 0.1) 中包含 hard negitive examples 的可能性并非没有, 所以我们需要对其做 hard negitive mining, 找到其中的 hard negitive examples 用于训练网络**. **按照常理来说 IOU 在[0, 0.1)之内 会被判定为真例的概率很小, 如果这种现象发生了, 可能对于我们训练网络有很大的帮助, 所以 Fast RCNN 会对与 ground truth 的 IoU 在 [0, 0.1)之内的是 example 做 hard negitive examples**.
+
+
+
+  网友3：**hard negative就是每次把那些顽固的棘手的错误,再送回去继续练,练到你的成绩不再提升为止。**
+
+
+
+
 
 主要参考：<https://blog.csdn.net/wopawn/article/details/52223282>

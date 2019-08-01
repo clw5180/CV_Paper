@@ -24,7 +24,11 @@ YOLOv2中使用的技巧，以及提升的mAP：
 
 ### Batch Normalization
 
-在V1的基础上增加了BN层，位置在Conv层的后面，同时去掉了Dropout，也不会产生过拟合。对于每个隐层神经元，**把逐渐向非线性函数映射后向取值区间极限饱和区靠拢的输入分布强制拉回到均值为0方差为1的比较标准的正态分布，使得非线性变换函数的输入值落入对输入比较敏感的区域，以此避免梯度消失问题。YOLO网络在每一个卷积层后添加batch normalization，通过这一方法，mAP获得了2个点的提升**。
+在V1的基础上增加了BN层，位置在Conv层的后面。BN的两个作用：
+
+1、首先，**BN可以比较好地解决过拟合的问题，因此不再使用dropout**（自注：BN算法时如何防止过拟合的？在这里摘录一段国外大神的解释：“When training with Batch Normalization, a training example is seen in conjunction with other examples in the mini-batch, and the training network no longer producing deterministic values for a given training example. In our experiments, we found this effect to be advantageous to the generalization of the network.”大概意思是：**在训练中，BN的使用使得一个mini-batch中的所有样本都被关联在了一起，因此网络不会从某一个训练样本中生成确定的结果**。意思就是同样一个样本的输出不再仅仅取决于样本本身，也取决于跟这个样本属于同一个mini-batch的其它样本。同一个样本跟不同的样本组成一个mini-batch，它们的输出是不同的（仅限于训练阶段，在inference阶段是没有这种情况的）。我把这个理解成一种数据增强：同样一个样本在超平面上被拉扯，每次拉扯的方向的大小均有不同。不同于数据增强的是，这种拉扯是贯穿数据流过神经网络的整个过程的，意味着神经网络每一层的输入都被数据增强处理了。**相比于Dropout、L1、L2正则化来说，BN算法防止过拟合效果并不是很明显**）。
+
+2、其次，BN的主要作用在于：对于每个隐层神经元，**把逐渐向**非线性函数映射后向取值区间极限**饱和区靠拢的输入分布强制拉回到均值为0方差为1的比较标准的正态分布**，使得非线性变换函数的输入值落入对输入比较敏感的区域，以此**解决了梯度消失问题**。YOLO网络在每一个卷积层后添加batch normalization，通过这一方法，mAP获得了2个点的提升。（这一操作在yolo_v3上依然有所保留，BN层从v2开始便成了yolo算法的标配）
 
 ![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/YOLOv2/2.jpg)
 
