@@ -40,7 +40,7 @@ anchor这个概念最早出现在Faster RCNN的paper中，如果能理解前面�
 
   也就是说，如果P3层feature map上的pixel从(0, 0)移动到了(1, 0) （自注：这里讨论的是左上角的坐标），那么base anchor就会相应地从原图的(-12, -12)移动到(-4, -12)，相当于水平方向移动了一个stride，也就是8；另外，因为feature map上左上角(0, 0)这个pixel对应于原图的(-12, -12)这个位置，因此可以推出中心位于原图的(4, 4)位置，如下图所示：
 
-  ![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/Anchor/1.png)
+  ![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/Anchor/1.png)
 
   
 
@@ -78,9 +78,9 @@ anchor这个概念最早出现在Faster RCNN的paper中，如果能理解前面�
 
 - 检测小目标，比如使用P2到P6层，大佬martinzlocha给出的建议：
 
-  If you want to use 16-256 and half the stride then you need P2-P6. To use P2-P6 just modify the line: [https://github.com/fizyr/keras-retinanet/raw/50d07a0cd7c6e019413bfa3f4c7d7159401e8747/keras_retinanet/models/vgg.py#L97](https://slack-redir.net/link?url=https%3A%2F%2Fgithub.com%2Ffizyr%2Fkeras-retinanet%2Fblob%2F50d07a0cd7c6e019413bfa3f4c7d7159401e8747%2Fkeras_retinanet%2Fmodels%2Fvgg.py%23L97) so that you use the higher pooling layers. So starting from block2_pool.
+  If you want to use 16-256 and half the stride then you need P2-P6. To use P2-P6 just modify the line: [https://github.com/fizyr/keras-retinanet/blob/50d07a0cd7c6e019413bfa3f4c7d7159401e8747/keras_retinanet/models/vgg.py#L97](https://slack-redir.net/link?url=https%3A%2F%2Fgithub.com%2Ffizyr%2Fkeras-retinanet%2Fblob%2F50d07a0cd7c6e019413bfa3f4c7d7159401e8747%2Fkeras_retinanet%2Fmodels%2Fvgg.py%23L97) so that you use the higher pooling layers. So starting from block2_pool.
 
-  You'll also want to change a few small things like this: [https://github.com/fizyr/keras-retinanet/raw/50d07a0cd7c6e019413bfa3f4c7d7159401e8747/keras_retinanet/utils/anchors.py#L220](https://slack-redir.net/link?url=https%3A%2F%2Fgithub.com%2Ffizyr%2Fkeras-retinanet%2Fblob%2F50d07a0cd7c6e019413bfa3f4c7d7159401e8747%2Fkeras_retinanet%2Futils%2Fanchors.py%23L220)
+  You'll also want to change a few small things like this: [https://github.com/fizyr/keras-retinanet/blob/50d07a0cd7c6e019413bfa3f4c7d7159401e8747/keras_retinanet/utils/anchors.py#L220](https://slack-redir.net/link?url=https%3A%2F%2Fgithub.com%2Ffizyr%2Fkeras-retinanet%2Fblob%2F50d07a0cd7c6e019413bfa3f4c7d7159401e8747%2Fkeras_retinanet%2Futils%2Fanchors.py%23L220)
 
   And you cannot just arbitrarily change the stride. Stride is the ratio between the feature map size to which you attach the subnetworks and the original image size.
 

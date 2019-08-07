@@ -13,7 +13,7 @@
 
 ## 一、介绍
 
-![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/FasterRCNN/1.png)
+![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FasterRCNN/1.png)
 
 &emsp;&emsp;Faster R-CNN，可以大致分为两个部分，一个是**RPN（区域生成网络）**，另一个是**Fast R-CNN网络**，前者是一种候选框（proposal）的推荐算法，而后者则是在此基础上对框的位置和框内的物体的类别进行细致计算。（可以将Faster R-CNN可以简单地看做“RPN + Fast RCNN“的系统，用区域生成网络代替Fast R-CNN中的Selective Search方法）
 
@@ -25,7 +25,7 @@ Faster RCNN主要可以分为如下**四个部分**：
 
 （1）首先向CNN网络（**ZF**、**VGGNet-16**或**ResNet**等）输入任意大小图片（自注：论文中短边压缩到600像素，长边不确定，论文中以1000为例进行分析）；VGG16的结构如下图所示：
 
-![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/FasterRCNN/2_0.png)
+![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FasterRCNN/2_0.png)
 
 Conv layers部分共有13个conv层，13个relu层，4个pooling层。注意在Faster RCNN Conv layers中对所有的卷积都做了扩边处理（ **pad=1**，即填充一圈0），导致原图变为 (M+2)x(N+2)大小，再做3x3卷积后输出MxN 。正是这种设置，导致Conv layers中的conv层不改变输入和输出矩阵大小。类似的是，Conv layers中的pooling层kernel_size=2，stride=2。这样每个经过pooling层的MxN矩阵，都会变为(M/2)x(N/2)大小。综上所述，在整个Conv layers中，conv和relu层不改变输入输出大小，只有pooling层使输出长宽都变为输入的1/2。那么，一个MxN大小的矩阵经过Conv layers固定变为(M/16)x(N/16)！这样Conv layers生成的feature map中都可以和原图对应起来。
 
@@ -65,7 +65,7 @@ def restnet_head(input, is_training, scope_name):
 
 &emsp;&emsp;卷积公式：
 
-![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/FasterRCNN/4.png)
+![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FasterRCNN/4.png)
 
 &emsp;&emsp;所以，conv层不会改变图片大小（即：输入的图片大小=输出的图片大小）
 
@@ -79,15 +79,15 @@ def restnet_head(input, is_training, scope_name):
 
 #### RPN详解
 
-![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/FasterRCNN/5.png)
+![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FasterRCNN/5.png)
 
 &emsp;&emsp;**注意**：上图中卷积层/全连接层表示卷积层或者全连接层，作者在论文中表示这两层实际上是全连接层，但是网络在所有滑窗位置共享全连接层，可以很自然地用n×n卷积核【**论文中设计为3×3**】跟随两个并行的1×1卷积核实现，文中这么解释的。
 
-![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/FasterRCNN/4.png)
+![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FasterRCNN/4.png)
 
 &emsp;&emsp;在Feature Map进入RPN后，先经过一次nxn的卷积（原文是用的**3x3**），应该是使用了padding，能够保证输出大小依然是60x40，通道数量是256（VGG是512），这样做的目的应该是**进一步集中特征信息**。接着看到两个全卷积，即kernel_size=1x1，p=0，stride=1；
 
-![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/FasterRCNN/6.png)
+![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FasterRCNN/6.png)
 
 如上图中标识：
 
@@ -101,7 +101,7 @@ def restnet_head(input, is_training, scope_name):
 
   如下图所示：
 
-![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/FasterRCNN/7.png)
+![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FasterRCNN/7.png)
 
 &emsp;&emsp;（对于上面特征图中**60x40个"位置"（自注：这里不用乘以256），每一个"位置"都"负责”原图中对应位置的9种尺寸框的检测**，检测的目标是判断框中是否存在一个物体，因此**共有60x40x9个“框”**。在Faster R-CNN原论文中，将这些框都统一称为"**anchor**"）。
 
@@ -109,25 +109,25 @@ def restnet_head(input, is_training, scope_name):
 
 #### Anchor详解
 
-&emsp;&emsp;前面提到经过Conv layers后，图片大小变成了原来的1/16，令feat_stride=16，在生成Anchors时，我们先定义一个base_anchor，大小为16x16的box（因为60x40的特征图上的一个点，可以对应到原图（1000x600）上一个16x16大小的区域），源码中转化为**[0, 0, 15, 15]**的数组（TODO：这个是什么意思？），参数ratios=[0.5, 1, 2]  scales=[8, 16, 32] （自注：scales需要换算到原图，对应大小是128, 256, 512）
+&emsp;&emsp;前面提到经过Conv layers后，图片大小变成了原来的1/16，令feat_stride=16，在生成Anchors时，我们先定义一个base_anchor，大小为16x16的box（因为60x40的特征图上的一个点，可以对应到原图（1000x600）上一个16x16大小的区域），源码中转化为**[0, 0, 15, 15]**的数组（TODO：这个是什么意思？），参数ratios=[0.5, 1, 2]  scales=[8, 16, 32] （自注：scales需要换算到原图，即乘以16，对应**scales大小是[128, 256, 512]**；**另外scales代表的是正方形anchor的边长**而不是面积）。对这3个scale分别产生长、宽比分别为[0.5, 1, 2]的anchor box，如下图所示（**自注：实际上对于feature map的1个pixel，应该产生中心点在同一位置的9个anchor，而这里画成中心点不在同一位置，应该只是为了更直观地表达**）。**注意这里并不是说w=256，h=128，而是保证面积和128^2相同，来求宽和高**，即解这两个方程：w x h=128^2 ， w / h =2，在代码中可以直接写成 **h = 128 / sqrt(ratio)** ，求出h=90.5，w=181。综上，根据3个scales和3个ratios，生成9个Anchor box。
 
-![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/FasterRCNN/8.png)
-
-&emsp;&emsp;先看[0,0,15,15]，面积保持128不变，产生长、宽比分别为[0.5, 1, 2]的anchor box，如下图所示。注意这里并不是说w=256，h=128，而是保证面积和128^2相同，来求宽和高，即解这两个方程：w x h=128^2 ， w / h =2得到w=181, h=90.5。
-
-![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/FasterRCNN/9.png)
+![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FasterRCNN/8.jpg)
 
 &emsp;&emsp;另外，论文中提到不同anchor学习到的proposal的平均尺寸如下表，这个值是怎么来的？为什么同样是anchor_scale = 128，ratio=2:1和ratio=1:2差这么多？
 
-![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/FasterRCNN/9_0.png)
+![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FasterRCNN/9.png)
 
-&emsp;&emsp;综上，根据3个scales和3个ratios，生成9个Anchor box。
+&emsp;&emsp;
 
-![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/FasterRCNN/10.png)
+&emsp;&emsp;另外知乎有人提到：“**anchor的本质类似于SPP (spatial pyramid pooling) 思想的逆向**。而SPP就是将不同尺寸的输入resize成为相同尺寸的输出。所以SPP的逆向就是，**将相同尺寸的输出，倒推得到不同尺寸的输入**。” <https://www.zhihu.com/question/42205480> ，
+
+
+
+
 
 &emsp;&emsp;所以，最终base_anchor=[0,0,15,15]生成的9个Anchor box坐标如下（TODO：这个值还是没太明白怎么得到的，可以再看下anchor.md的笔记研究一下）：
 
-![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/FasterRCNN/11.png)
+![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FasterRCNN/11.png)
 
 &emsp;&emsp;特征图大小为60x40，所以会一共生成60x40x9=21600个Anchor box。
 
@@ -149,7 +149,7 @@ RPN：
 
 &emsp;&emsp;为了进一步更清楚的看懂RPN的工作原理，将Caffe版本下的网络图贴出来，对照网络图进行讲解会更清楚
 
-![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/FasterRCNN/12.png)
+![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FasterRCNN/12.png)
 
 &emsp;&emsp;主要看上图中框住的‘RPN’部分的网络图，其中‘rpn_conv/3*3’是3*3的卷积，上面有提到过，接着是两个1*1的全卷积，分别是图中的‘rpn_cls_score’和‘rpn_bbox_pred’，在上面同样有提到过。接下来，分析网络图中其他各部分的含义
 
@@ -211,7 +211,7 @@ anchor box: 中心点位置坐标x_a,y_a和宽高w_a,h_a
 
 补充：
 
-![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/FasterRCNN/13.png)
+![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FasterRCNN/13.png)
 
 在’rpn-data’中已经为预测框anchor box进行了标记，并且计算出与gt_boxes之间的偏移量,利用RPN网络进行训练。
 
@@ -245,7 +245,7 @@ layer
 
 用下图一个案例来对NMS算法进行简单介绍
 
-![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/FasterRCNN/14.png)
+![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FasterRCNN/14.png)
 
 如上图所示，一共有6个识别为人的框，每一个框有一个置信率。 
 
@@ -263,7 +263,7 @@ layer
 
 所以，整个过程，可以用下图形象的表示出来
 
-![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/FasterRCNN/15.png)
+![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FasterRCNN/15.png)
 
 其中，红色的A框是生成的anchor box,而蓝色的G’框就是经过RPN网络训练后得到的较精确的预测框，绿色的G是ground truth box
 
@@ -337,7 +337,7 @@ layer
 
 经过roi pooling层之后，batch_size=300, proposal feature map的大小是7*7,512-d,对特征图进行全连接，参照下图，最后同样利用Softmax Loss和L1 Loss完成分类和定位
 
-![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/FasterRCNN/16.png)
+![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FasterRCNN/16.png)
 
 通过full connect层与softmax计算每个region proposal具体属于哪个类别（如人，马，车等），输出cls_prob概率向量；同时再次利用bounding box regression获得每个region proposal的位置偏移量bbox_pred，用于回归获得更加精确的目标检测框
 
