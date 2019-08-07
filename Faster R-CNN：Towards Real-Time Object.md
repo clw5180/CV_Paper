@@ -53,9 +53,19 @@ def restnet_head(input, is_training, scope_name):
 
 （4）最后将**proposal feature maps**送入后续fc层，然后一路经过softmax网络作classification，另一路再做一次bounding box regression获得检测框最终的精确位置。
 
+（主要参考：<https://zhuanlan.zhihu.com/p/31426458>）
 
 
-#### Fast RCNN详解
+
+各conv层的维度以及各层输入、输出的维度图如下：
+
+![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FasterRCNN/3.jpg)
+
+
+
+### Fast RCNN详解
+
+#### 1、backbone部分
 
 1、特征提取（自注：以下参考 <https://www.cnblogs.com/wangyong/p/8513563.html>）
 
@@ -73,11 +83,11 @@ def restnet_head(input, is_training, scope_name):
 
 ③   4个pooling层：kernel_size=2, stride=2; pooling层会让输出图片是输入图片的1/2
 
-&emsp;&emsp;经过Conv layers，图片大小变成 (M / 16) x (N / 16) ，即：62 x 37 (1000 / 16 = 62.5, 600 / 16 = 37.5)；则，Feature Map就是 **62 x 37 x 512维** （**注：VGG16的conv4输出的通道数量是512-d，而ZF是256-d，后面都以VGG为例**），表示Feature Map的大小为62 x 37，通道数为256；
+&emsp;&emsp;经过Conv layers，图片大小变成 (M / 16) x (N / 16) ，即：62 x 37 (1000 / 16 = 62.5, 600 / 16 = 37.5)；则，Feature Map就是 **62 x 37 x 512维** （**注：VGG16的conv4输出的通道数量是512-d，而ZF是256-d，后面都以VGG为例**），表示Feature Map的大小为62 x 37，通道数为512；
 
 
 
-#### RPN详解
+#### 2、RPN部分
 
 ![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FasterRCNN/5.png)
 
@@ -139,7 +149,7 @@ layer
 }
 ```
 
-&emsp;&emsp;这一层主要是为特征图60*40上的每个像素生成9个Anchor box，并且对生成的Anchor box进行过滤和标记，参照源码，过滤和标记规则如下：
+&emsp;&emsp;这一层主要是为特征图62 x 37上的每个像素生成9个Anchor box，并且对生成的Anchor box进行过滤和标记，参照源码，过滤和标记规则如下：
 
 ①    去除掉超过1000*600这原图的边界的anchor box
 
@@ -227,7 +237,7 @@ layer
 
 ![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FasterRCNN/11.png)
 
-其中，红色的A框是生成的anchor box,而蓝色的G’框就是经过RPN网络训练后得到的较精确的预测框，绿色的G是ground truth box
+其中，红色的A框是生成的anchor box,而蓝色的G’框就是经过RPN网络训练后得到的较精确的预测框，绿色的G是ground truth box。
 
 
 
@@ -253,7 +263,7 @@ layer
 
 ![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FasterRCNN/14.png)
 
-&emsp;&emsp;特征图大小为62x37，所以会一共生成62x37x9=20646个Anchor box。
+&emsp;&emsp;特征图大小为62x37，所以会一共生成 **62 x 37 x 9=20646** 个Anchor box。
 
 &emsp;&emsp;源码中，通过width:(0~62)x16, height(0~37)x16建立shift偏移量数组，再和base_anchor基准坐标数组累加，得到特征图上所有像素对应的Anchors的坐标值，是一个[20646, 4]的数组
 
@@ -321,7 +331,7 @@ layer
 }
 ```
 
-从上述的Caffe代码中可以看到，输入的是RPN层产生的region proposal(假定有300个region proposal box)和VGG16最后一层产生的特征图(60*40 512-d)，遍历每个region proposal，将其坐标值缩小16倍，这样就可以将在原图(1000*600)基础上产生的region proposal映射到60*40的特征图上，从而将在feature map上确定一个区域(定义为RB*)。
+从上述的Caffe代码中可以看到，输入的是RPN层产生的region proposal（假定有300个region proposal box）和VGG16最后一层产生的特征图（62 x 37 x 512-d），遍历每个region proposal，将其坐标值缩小16倍，这样就可以将在原图(1000 x 600)基础上产生的region proposal映射到 62 x 37 的特征图上，从而将在feature map上确定一个区域(定义为RB*)。
 
 在feature map上确定的区域RB*，根据参数pooled_w:7,pooled_h:7,将这个RB*区域划分为7*7，即49个相同大小的小区域，对于每个小区域，使用max pooling方式从中选取最大的像素点作为输出，这样，就形成了一个7*7的feature map
 
@@ -373,7 +383,7 @@ layer
 
 - 文中anchors的数目？
 
-  文中提到对于1000×600的一张图像，大约有20000(~62×37×9)个anchors，忽略超出边界的anchors剩下6000个anchors，利用非极大值抑制去掉重叠区域，剩2000个区域建议用于训练；测试时在2000个区域建议中选择Top-N【文中为300】个区域建议用于Fast R-CNN检测。
+  文中提到对于1000×600的一张图像，大约有20000 (~62×37×9) 个anchors，忽略超出边界的anchors剩下6000个anchors，利用非极大值抑制去掉重叠区域，剩2000个区域建议用于训练；测试时在2000个区域建议中选择Top-N（文中为300）个区域建议用于Fast R-CNN检测。
 
 
 - hard negative mining（ 难分样本挖掘）是如何实现的？
