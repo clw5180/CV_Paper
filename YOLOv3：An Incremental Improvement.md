@@ -1,4 +1,4 @@
-# **YOLOv3: An Incremental Improvement **
+# YOLOv3: An Incremental Improvement
 
 论文地址：<https://arxiv.org/abs/1804.02767>
 
@@ -12,13 +12,13 @@
 
 ## 一、介绍
 
-首先作者把RetinaNet论文中的实验结果图拿出来，说明YOLOv3尽管mAP不如两阶段检测器，但是速度还是要快很多，见下图。可以看到，YOLOv3图片Input_size从320到416再到608，速度越慢但准确性越好。和YOLOv2相比，YOLOv3做到了更快，更好；
+首先作者把RetinaNet论文中的实验结果图拿出来，说明YOLOv3尽管mAP不如两阶段检测器，但是速度还是要快很多。可以看到，YOLOv3图片Input_size从320到416再到608，速度越慢但准确性越好。
 
 ![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/YOLOv3/1.png)
 
 
 
-## 二、blob主要内容
+## 二、主要内容
 
 #### bbox预测
 
@@ -36,6 +36,85 @@ YOLOv3使用logistic regression为每个bbox预测含有物体的score。如果�
 
 作者认为softmax不是必须的，因此这里使用了独立的逻辑回归分类器；在训练过程中使用二分类交叉熵损失。这种做法对不同label可能重叠（如woman和person）的数据集很有帮助。
 
+**Anchor先验参数计算**
+这里计算训练数据的anchor是根据模型中图像的输入尺寸得到的，即无需转化可以直接拿来训练（其实就是乘了一下输入尺寸）。参考：https://github.com/lars76/kmeans-anchor-boxes。
+```
+# -*- coding=utf-8 -*-
+import glob
+import os
+import sys
+import xml.etree.ElementTree as ET
+import numpy as np
+from kmeans import kmeans, avg_iou
+
+# 根文件夹
+ROOT_PATH = '/data/DataBase/YOLO_Data/V3_DATA/'
+# 聚类的数目
+CLUSTERS = 6
+# 模型中图像的输入尺寸，默认是一样的
+SIZE = 640
+
+# 加载YOLO格式的标注数据
+def load_dataset(path):
+    jpegimages = os.path.join(path, 'JPEGImages')
+    if not os.path.exists(jpegimages):
+        print('no JPEGImages folders, program abort')
+        sys.exit(0)
+    labels_txt = os.path.join(path, 'labels')
+    if not os.path.exists(labels_txt):
+        print('no labels folders, program abort')
+        sys.exit(0)
+
+    label_file = os.listdir(labels_txt)
+    print('label count: {}'.format(len(label_file)))
+    dataset = []
+
+    for label in label_file:
+        with open(os.path.join(labels_txt, label), 'r') as f:
+            txt_content = f.readlines()
+
+        for line in txt_content:
+            line_split = line.split(' ')
+            roi_with = float(line_split[len(line_split)-2])
+            roi_height = float(line_split[len(line_split)-1])
+            if roi_with == 0 or roi_height == 0:
+                continue
+            dataset.append([roi_with, roi_height])
+            # print([roi_with, roi_height])
+
+    return np.array(dataset)
+
+data = load_dataset(ROOT_PATH)
+out = kmeans(data, k=CLUSTERS)
+
+print(out)
+print("Accuracy: {:.2f}%".format(avg_iou(data, out) * 100))
+print("Boxes:\n {}-{}".format(out[:, 0] * SIZE, out[:, 1] * SIZE))
+
+ratios = np.around(out[:, 0] / out[:, 1], decimals=2).tolist()
+print("Ratios:\n {}".format(sorted(ratios)))
+```
+经过运行之后得到一组如下数据：
+[[0.21203704 0.02708333]
+ [0.34351852 0.09375   ]
+ [0.35185185 0.06388889]
+ [0.29513889 0.06597222]
+ [0.24652778 0.06597222]
+ [0.24861111 0.05347222]]
+Accuracy: 89.58%
+Boxes:
+(135.7037037  219.85185185 225.18518519 188.88888889 157.77777778 159.11111111) - (17.33333333 60. 40.88888889 42.22222222 42.22222222 34.22222222)
+其中的Boxes就是得到的anchor参数，以上面给出的计算结果为例，最后的anchor参数设置为
+anchors = 135,17,  219,60,  225,40,  188,42,  157,42,  159,34 
+
+为什么YOLOv2和YOLOv3的anchor大小有明显区别？
+**在YOLOv2中，作者用最后一层feature map的相对大小来定义anchor大小**。也就是说，在YOLOv2中，最后一层feature map大小为**13X13**（不同输入尺寸的图像最后的feature map也不一样的），相对的anchor大小范围就在（0x0，13x13]，**如果一个anchor大小是9x9，那么其在原图上的实际大小是288x288**。
+
+**而在YOLOv3中，作者又改用相对于原图的大小来定义anchor**，anchor的大小为（0x0，input_w x input_h]。所以，在两份cfg文件中，anchor的大小有明显的区别。如下是作者自己的解释：
+
+So YOLOv2 I made some design choice errors, I made the anchor box size be relative to the feature size in the last layer. Since the network was down-sampling by 32. This means it was relative to 32 pixels so an anchor of 9x9 was actually 288px x 288px.
+In YOLOv3 anchor sizes are actual pixel values. this simplifies a lot of stuff and was only a little bit harder to implement
+https://github.com/pjreddie/darknet/issues/555#issuecomment-376190325
 
 
 #### 多尺度预测
