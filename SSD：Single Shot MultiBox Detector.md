@@ -19,6 +19,12 @@
 ## 二、主要内容
 SSD 将输出一系列 离散化（discretization） 的 bounding boxes，这些 bounding boxes 是在不同层次（layers） 上的 feature maps 上生成的，并且有着不同的aspect ratio。
 
+![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/SSD/2.png)
+
+**SSD对小目标检测效果不好，因为conv4_3的feature map不够大**。小物体在较高层的特征图上只能保留很少的信息。这里只能通过**增加输入图像的尺寸**来解决对小物体检测效果。
+
+
+
 
 
 
