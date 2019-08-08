@@ -17,7 +17,7 @@
 
 
 ## 二、主要内容
-
+SSD 将输出一系列 离散化（discretization） 的 bounding boxes，这些 bounding boxes 是在不同层次（layers） 上的 feature maps 上生成的，并且有着不同的aspect ratio。
 
 
 
