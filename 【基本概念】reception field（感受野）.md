@@ -1,6 +1,8 @@
 感受野（reception field）
 ============
 
+首先可以看一下这篇文章：https://zhuanlan.zhihu.com/p/44106492 讲得非常好。
+
 自注：在阅读Faster R-CNN的论文时，看到了这样一句：
 
 ```
