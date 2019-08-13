@@ -1,7 +1,10 @@
 感受野（reception field）
 ============
 
+定义：感受野用来表示网络内部的不同神经元对原图像的感受范围的大小，或者说，convNets(cnn)每一层输出的特征图(feature map)上的像素点在原始图像上映射的区域大小。
+
 首先可以看一下这篇文章：https://zhuanlan.zhihu.com/p/44106492 讲得非常好。
+
 
 自注：在阅读Faster R-CNN的论文时，看到了这样一句：
 
