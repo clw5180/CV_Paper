@@ -18,7 +18,12 @@ anchor这个概念最早出现在Faster RCNN的paper中，如果能理解前面�
 
 另外，对于anchor的base size，scale和ratio的含义，大佬martinzlocha给出了说明：“The ratios are slightly harder to compute but the size of the final anchor is sizes x scales. So essentially if you have size 32x32 and scale of 0.5 then the anchor will be 16x16.If you have a ratio of 1:2 and the (1:1) anchor is **16x16** then the **1:2** anchor is xxy=16x16 where x/y=2. So just solve the two simultaneous equations and you will get **11.31x22.62**”
 
+Anchor设置方面有三个问题（从今天的算法水平往回看，事后诸葛角度）：
 
+最小的anchor是128x128尺度，而COCO小目标很多，且小目标很小，远小于这个尺度，为了能检测这些小目标，Faster R-CNN不得不放大输入图像(~1000x600)，导致计算速度成倍增加，而同时被放大的大目标可能超过最大anchor尺度，又不得不加入多尺度测试保证从大到小anchor全覆盖，进一步影响速度；
+最大的anchor是512x512尺度，而预测层的感受野仅228，上一篇讨论过，一般来说感受野一定要大于anchor大小，而且越大越好，这里感受野明显不足以支撑最大尺度的anchor，导致大尺度目标检测性能不够好；
+三尺度按照检测目标的大小，我们简称为大、中、小锚框，那么三个尺度的anchor分别有63x38x3=7182个，共计7182x3=21546个anchor。通常anchor需要覆盖训练集的所有目标，即每个groundtruth box都能匹配到一个anchor，因此理想情况下目标越小anchor应该越多越密集，才能覆盖所有的候选区域，目标越大anchor应该越少越稀疏，否则互相高度重叠造成冗余计算量，反观RPN这里的单一feature map三尺度三比例设置，导致检测小目标的anchor太少太疏，而检测大目标的anchor太多太密。论文提到Faster R-CNN训练中忽略了所有跨边界的anchor否则训练无法收敛，尺度越大跨边界越多，所以训练中忽略掉的很多都是大锚框。
+（详见这位网友分析的很好：https://zhuanlan.zhihu.com/p/55824651）
 
 ## 二、典例
 
