@@ -52,7 +52,7 @@
 
 自注：
 
-1、ResNeXt50相比ResNet50提升约2个点，ResNeXt101相比ResNet101提升0.8个点，都是针对32x4d而言；如果用64x4d，效果还能好一点。
+1、ResNeXt50相比ResNet50提升约2个点，ResNeXt101相比ResNet101提升0.8个点，都是针对32x4d而言；如果用64x4d，效果还能好一点。另外从Detectron的Model Zoo来看，X-101-64x4d-FPN比X-101-32x8d-FPN只高0.1~0.2个点，with GN对于R-101-FPN来说只高了0.1个点，X-101-64x4d-FPN-cascade和传统baseline相比，AP50只高了0.2个点，但是整体AP高出了4个点。**表现最好的还是 X-101-64x4d-FPN-cascade**
 
 2、三个mAP最高的对应的论文分别如下：
 
