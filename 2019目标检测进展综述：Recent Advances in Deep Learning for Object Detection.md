@@ -52,7 +52,7 @@
 
 自注：
 
-1、通过查阅Detectron的Model Zoo，补充Yolov3，和Faster R-CNN + FPN的
+1、ResNeXt50相比ResNet50提升约2个点，ResNeXt101相比ResNet101提升0.8个点，都是针对32x4d而言；如果用64x4d，效果还能好一点。
 
 2、三个mAP最高的对应的论文分别如下：
 
