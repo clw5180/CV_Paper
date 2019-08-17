@@ -32,7 +32,7 @@ GoogleNet有22层深，比同年的VGG19还深。包含了9个inception module�
 
 #### 主要关注网络的以下几个特点：
 
-- **DepthConcat：**聚合操作，在输出通道这个维度上聚合（一个inception module每个分支通道数可能不一样，但是feature map大小应该是一样的。strides=1，padding=same）。从inception 3a层开始引入，比如该层输入：28×28×192；输出：由于每个分支strides=1，padding=same，所以只是通道数在变化，feature map大小不变。最终输出 28×28×256（只增加了少量通道数）。
+- **DepthConcat**：聚合操作，在输出通道这个维度上聚合（一个inception module每个分支通道数可能不一样，但是feature map大小应该是一样的。strides=1，padding=same）。从inception 3a层开始引入，比如该层输入：28×28×192；输出：由于每个分支strides=1，padding=same，所以只是通道数在变化，feature map大小不变。最终输出 28×28×256（只增加了少量通道数）。
 
 - **含多个辅助分类器**：Google net除了最后一层输出进行分类外，其中间节点的分类效果也很好。于是，**GoogleNet也会将中间的某一层的输出用于分类**，并**按一个较小的权重（0.3）**加到最终的分类结果中。
 
