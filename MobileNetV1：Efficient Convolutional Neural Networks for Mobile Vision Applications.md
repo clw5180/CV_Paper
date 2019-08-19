@@ -19,24 +19,23 @@
 
 顾名思义，空间可分离就是将一个大的卷积核变成两个小的卷积核，比如将一个3×3的核分成一个3×1和一个1×3的核：
 
-![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/深度可分离卷积/1.png)
+![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/MobileNetV1/1.png)
 
 由于空间可分离卷积不在MobileNet的范围内，就不说了。
 
 #### - 深度可分离卷积
-![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/深度可分离卷积/2.png)
+![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/MobileNetV1/2.png)
 
 深度可分离卷积就是将普通卷积拆分成为一个**深度可分离卷积** (或称**深度卷积**，depthwise convolution) 和一个**逐点卷积** (pointwise convolution) 。
 
-
 **标准卷积与深度可分离卷积的过程对比如下**：
-![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/深度可分离卷积/3.jpg)
+![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/MobileNetV1/3.jpg)
 
 深度可分离卷积**用更少的参数，更少的运算，但是能达到和标准卷积差不多的结果**。计算一下标准卷积的参数量与计算量：
-![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/深度可分离卷积/4.png)
+![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/MobileNetV1/4.png)
 我们通常所使用的是3×3的卷积核，也就是**参数和计算量会下降到原来的九分之一到八分之一**，但是**准确率只有下降极小的1％**，如下图所示。
 
-![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/深度可分离卷积/5.png)
+![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/MobileNetV1/5.png)
 
 可以发现，作为轻量级网络的V1在计算量小于GoogleNet，参数量差不多是在一个数量级的基础上，在分类效果上比GoogleNet还要好，这就是要得益于深度可分离卷积了。VGG16的计算量参数量比V1大了30倍，但是结果也仅仅只高了1%不到。
 
