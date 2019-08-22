@@ -119,17 +119,19 @@ anchors = 135,17,  219,60,  225,40,  188,42,  157,42,  159,34
 **在YOLOv2中，作者用最后一层feature map的相对大小来定义anchor大小**。也就是说，在YOLOv2中，最后一层feature map大小为**13X13**（不同输入尺寸的图像最后的feature map也不一样的），相对的anchor大小范围就在（0x0，13x13]，**如果一个anchor大小是9x9，那么其在原图上的实际大小是288x288**。
 
 **而在YOLOv3中，作者又改用相对于原图的大小来定义anchor**，anchor的大小为（0x0，input_w x input_h]。所以，在两份cfg文件中，anchor的大小有明显的区别。如下是作者自己的解释：
-
 So YOLOv2 I made some design choice errors, I made the anchor box size be relative to the feature size in the last layer. Since the network was down-sampling by 32. This means it was relative to 32 pixels so an anchor of 9x9 was actually 288px x 288px.
 In YOLOv3 anchor sizes are actual pixel values. this simplifies a lot of stuff and was only a little bit harder to implement
 https://github.com/pjreddie/darknet/issues/555#issuecomment-376190325
 
+Yolov3中，在416x416尺度下，最小可以感受 8x8 像素的的信息，即针对52x52的feature map，如下图
+https://pic1.zhimg.com/80/v2-21ab25791e7437631e5cba5aec36691c_hd.jpg
 
 #### 多尺度预测
 
 YOLOv3借鉴了FPN的思想，使用三种不同尺度的特征图来进行预测；预测结果是一个3维的tensor，每个维度分别描述了bbox坐标，是否含有物体（score）以及分类；比如对于COCO数据集，每个尺度预测3个框，则tensor的数量为 N x N x [3 x (4 + 1 + 80)]，其中包含了4个bbox坐标偏移，1个score以及80个类别预测。
 
-使用2 layers previous（？？）的feature map，做2倍上采样，并进行融合，这样能够获得上层更丰富的语义信息。后面在跟几个卷积层，来更好地组合之前融合的feature map的特征，最终预测一个两倍大小的tensor。？？
+使用2 layers previous 的feature map，做2倍上采样，并进行融合，这样能够获得上层更丰富的语义信息。后面在跟几个卷积层，来更好地组合之前融合的feature map的特征，最终预测一个两倍大小的tensor。
+https://pic4.zhimg.com/80/v2-ffbc5b713c98c13e2659bb528b05fd67_hd.jpg
 
 同样使用K-means算法，作者在COCO数据集上得到的9个anchor：10x13, 16x30, 33x23, 30x61, 62x45, 59x119, 116x90, 156x198, 373x326；
 
@@ -153,7 +155,7 @@ YOLOv3借鉴了FPN的思想，使用三种不同尺度的特征图来进行预�
 
 ## 三、实验结果
 
-结果如下图所示，可以看出，Yolov2、SSD都不适合小目标检测，RetinaNet最适合但耗时较长，YOLOv3准确性虽然不及RetinaNet，但是用时少很多。另外YOLOv3在“IoU=0.5”这种古老的评价标准中效果拔群，mAP达到了57.9，略低于Faster R-CNN + ResNet-101-FPN的59.1，以及RetinaNet + ResNet-101-FPN也是59.1；但是当IoU进一步提升到0.75时，mAP显著降低，说明YOLOv3很难保证预测的bbox和实际物体有较好的贴合（get the boxes perfectly aligned with the box）。另外，YOLO之前在小物体领域一直表现不佳，但YOLOv3通过多尺度预测，可以很好地检测到小物体，效果和Faster R-CNN + ResNet-101-FPN持平，略逊色于RetinaNet + ResNet-101-FPN，但是在较大物体方面又表现不佳了，所以作者讲需要做的工作还很多。
+结果如下图所示，可以看出，**Yolov2、SSD都不适合小目标检测，RetinaNet最适合但耗时较长**，YOLOv3准确性虽然不及RetinaNet，但是用时少很多。另外YOLOv3在“IoU=0.5”这种古老的评价标准中效果拔群，mAP达到了57.9，略低于Faster R-CNN + ResNet-101-FPN的59.1，以及RetinaNet + ResNet-101-FPN也是59.1；但是当IoU进一步提升到0.75时，mAP显著降低，说明YOLOv3很难保证预测的bbox和实际物体有较好的贴合（get the boxes perfectly aligned with the box）。另外，YOLO之前在小物体领域一直表现不佳，但YOLOv3通过多尺度预测，可以很好地检测到小物体，效果和Faster R-CNN + ResNet-101-FPN持平，略逊色于RetinaNet + ResNet-101-FPN，但是在较大物体方面又表现不佳了，所以作者讲需要做的工作还很多。
 
 ![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/YOLOv3/4.png)
 
