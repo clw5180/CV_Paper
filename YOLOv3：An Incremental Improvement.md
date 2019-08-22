@@ -124,14 +124,14 @@ In YOLOv3 anchor sizes are actual pixel values. this simplifies a lot of stuff a
 https://github.com/pjreddie/darknet/issues/555#issuecomment-376190325
 
 Yolov3中，在416x416尺度下，最小可以感受 8x8 像素的的信息，即针对52x52的feature map，如下图
-https://pic1.zhimg.com/80/v2-21ab25791e7437631e5cba5aec36691c_hd.jpg
+![这里随便写文字](https://pic1.zhimg.com/80/v2-21ab25791e7437631e5cba5aec36691c_hd.jpg)
 
 #### 多尺度预测
 
 YOLOv3借鉴了FPN的思想，使用三种不同尺度的特征图来进行预测；预测结果是一个3维的tensor，每个维度分别描述了bbox坐标，是否含有物体（score）以及分类；比如对于COCO数据集，每个尺度预测3个框，则tensor的数量为 N x N x [3 x (4 + 1 + 80)]，其中包含了4个bbox坐标偏移，1个score以及80个类别预测。
 
-使用2 layers previous 的feature map，做2倍上采样，并进行融合，这样能够获得上层更丰富的语义信息。后面在跟几个卷积层，来更好地组合之前融合的feature map的特征，最终预测一个两倍大小的tensor。
-https://pic4.zhimg.com/80/v2-ffbc5b713c98c13e2659bb528b05fd67_hd.jpg
+**使用2 layers previous 的feature map，做2倍上采样，并进行融合，这样能够获得上层更丰富的语义信息**。后面在跟几个卷积层，来更好地组合之前融合的feature map的特征，最终预测一个两倍大小的tensor。
+![这里随便写文字](https://pic4.zhimg.com/80/v2-ffbc5b713c98c13e2659bb528b05fd67_hd.jpg)
 
 同样使用K-means算法，作者在COCO数据集上得到的9个anchor：10x13, 16x30, 33x23, 30x61, 62x45, 59x119, 116x90, 156x198, 373x326；
 
