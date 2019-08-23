@@ -24,7 +24,8 @@ SSD 将输出一系列 离散化（discretization） 的 bounding boxes，这些
 **SSD对小目标检测效果不好，因为conv4_3的feature map不够大**。小物体在较高层的特征图上只能保留很少的信息。这里只能通过**增加输入图像的尺寸**来解决对小物体检测效果。
 
 
-
+anchor的直观理解：按照不同的 scale 和 ratio 生成，k 个 default boxes，这种结构有点类似于 Faster R-CNN 中的 Anchor。(此处k=6所以：5*5*6 = 150 boxes)
+![这里随便写文字](https://pic4.zhimg.com/80/v2-e128c01e26456fa24502e2c05bf46e1b_hd.png)
 
 
 
