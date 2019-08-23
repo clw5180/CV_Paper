@@ -33,7 +33,7 @@
 
 Conv layers部分共有13个conv层，13个relu层，4个pooling层。注意在Faster RCNN Conv layers中对所有的卷积都做了扩边处理（ **pad=1**，即填充一圈0），导致原图变为 (M+2)x(N+2)大小，再做3x3卷积后输出MxN 。正是这种设置，导致Conv layers中的conv层不改变输入和输出矩阵大小。类似的是，Conv layers中的pooling层kernel_size=2，stride=2。这样每个经过pooling层的MxN矩阵，都会变为(M/2)x(N/2)大小。综上所述，在整个Conv layers中，conv和relu层不改变输入输出大小，只有pooling层使输出长宽都变为输入的1/2。那么，一个MxN大小的矩阵经过Conv layers固定变为(M/16) x (N/16)，这样Conv layers生成的feature map中都可以和原图对应起来。
 
-（2）将**conv5_3**输出的feature maps送入RPN，用于生成region proposals。得到**~20k个anchors**（假设图片尺寸约为**1000x600，经过前级VGGNet-16图片的宽高各缩小1/16，则产生62x37x9个anchors**）的坐标和类别；如果是训练阶段，还会去掉所有超出边界之外的图片，剩下**~6k个anchors**；之后采用**非极大值抑制**（论文中NMS的IoU阈值为0.7），每张图片得到**~2k个region proposals**，输出得分**Top-N**的region proposals；该层通过softmax判断anchors属于positive或者negative，再利用bounding box regression修正anchors获得精确的region proposals（或称为 regions of interest，RoI）。RPN自己选出了256个anchor进行训练，然后将筛选出的~2000个RoIs送入RoI Pooling层。
+（2）将**conv5_3**输出的feature maps送入RPN，用于生成region proposals。得到**~20k个anchors**（假设图片尺寸约为**1000x600，经过前级VGGNet-16图片的宽高各缩小1/16，则产生62x37x9个anchors**）的坐标和类别；如果是训练阶段，还会去掉所有超出边界之外的anchor，剩下**~6k个anchors**；之后采用**非极大值抑制**（论文中NMS的IoU阈值为0.7），每张图片得到**~2k个region proposals**，输出得分**Top-N**的region proposals；该层通过softmax判断anchors属于positive或者negative，再利用bounding box regression修正anchors获得精确的region proposals（或称为 regions of interest，RoI）。RPN自己选出了256个anchor进行训练，然后将筛选出的~2000个RoIs送入RoI Pooling层。
 
 （3）RoI Pooling层收集输入的feature maps和proposals，综合这些信息后提取**固定大小**的**proposal feature maps**，送入fc层进行分类和回归。（**自注：对于ResNet，貌似是在conv4层提取feature maps，然后得到proposal feature maps送入conv5做全卷积，相当于fc层**，代码如下：）
 
