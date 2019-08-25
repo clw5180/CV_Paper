@@ -152,6 +152,8 @@ Training for classification
 Training for detection
 
 分类网络训练完后，就该训练检测网络了，作者去掉了原网络最后一个卷积层，转而增加了三个3 * 3 * 1024的卷积层（可参考darknet中cfg文件），并且在每一个上述卷积层后面跟一个1 * 1的卷积层，输出维度是检测所需的数量。对于VOC数据集，预测5种boxes大小，每个box包含5个坐标值和20个类别，所以总共是5 * （5+20）= 125个输出维度。同时也添加了转移层（passthrough layer ），从最后那个3 * 3 * 512的卷积层连到倒数第二层，使模型有了细粒度特征。
+![这里随便写文字](https://img-blog.csdn.net/20180412202437806?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM1NjA4Mjc3/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
+
 
 作者的检测模型以0.001的初始学习率训练了160次，在60次和90次的时候，学习率减为原来的十分之一。其他的方面，weight decay为0.0005，momentum为0.9，依然使用了类似于Faster-RCNN和SSD的数据扩充（data augmentation）策略。
 
