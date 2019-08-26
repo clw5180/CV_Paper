@@ -131,9 +131,15 @@ Yolov3中，在416x416尺度下，最小可以感受 8x8 像素的的信息，�
 YOLOv3借鉴了FPN的思想，使用三种不同尺度的特征图来进行预测；预测结果是一个3维的tensor，每个维度分别描述了bbox坐标，是否含有物体（score）以及分类；比如对于COCO数据集，每个尺度预测3个框，则tensor的数量为 N x N x [3 x (4 + 1 + 80)]，其中包含了4个bbox坐标偏移，1个score以及80个类别预测。
 
 **使用2 layers previous 的feature map，做2倍上采样，并进行融合，这样能够获得上层更丰富的语义信息**。后面在跟几个卷积层，来更好地组合之前融合的feature map的特征，最终预测一个两倍大小的tensor。
+模型结构图1
 ![这里随便写文字](https://pic4.zhimg.com/80/v2-ffbc5b713c98c13e2659bb528b05fd67_hd.jpg)
 
-同样使用K-means算法，作者在COCO数据集上得到的9个anchor：10x13, 16x30, 33x23, 30x61, 62x45, 59x119, 116x90, 156x198, 373x326；
+模型结构图2
+![这里随便写文字](https://img-blog.csdnimg.cn/2019040211084050.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM3NTQxMDk3,size_16,color_FFFFFF,t_70)
+在上图中我们能够很清晰的看到三个预测层分别来自的什么地方，以及Concatenate层与哪个层进行拼接。注意Convolutional是指Conv2d+BN+LeakyReLU，和Darknet53图中的一样，而生成预测结果的最后三层都只是Conv2d。
+
+
+同样使用K-means算法，作者在COCO数据集上得到的9个anchor：10x13, 16x30, 33x23, 30x61, 62x45, 59x119, 116x90, 156x198, 373x326；大尺寸特征图用小的3个anchor box；其他同理。
 
 
 
@@ -164,6 +170,9 @@ YOLOv3借鉴了FPN的思想，使用三种不同尺度的特征图来进行预�
 此外，作者发现有一些操作会降低mAP，包括：1、使用传统方法预测anchor box的x，y偏移  2、使用linear方法预测x，y而不用logistic  3、加入Focal loss  4、Dual IoU thresholds and truth assignment；
 
 
+#### 损失函数计算
+参考：https://blog.csdn.net/qq_37541097/article/details/81214953
+https://blog.csdn.net/leviopku/article/details/82660381
 
 ## 四、结论
 
