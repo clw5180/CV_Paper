@@ -11,7 +11,7 @@
 #### FPN的特点（1、自顶向下，侧向连接 2、内存消耗小）
 &emsp;&emsp;特征金字塔是处理多尺度物体检测问题的一个基础组成部分。图像特征金字塔（图a ）在传统的基于手动设计特征的方法中非常常用，**一个极端的例子是DPM方法使用了接近10种不同尺度**来取得不错的效果。然而，最近基于深度学习的物体检测算法考虑到计算量和内存限制都尽量避免采用特征金字塔的方式。在这篇文章中，**构造了一种自顶向下、带有侧向连接的层次结构来构建各个尺度的高层语义特征，利用深度卷积网络本身固有的多尺度、层次结构来构造特征金字塔，只会带来极小的额外消耗。**这种方法称之为Feature Pyramid Network (FPN)。FPN可以作为一种通用的特征提取器，并且在多个任务上带来了显著的性能提升。将FPN应用于Faster RCNN，在COCO上达到了最佳的单模型性能。另外，FPN的推理速度在GPU上可以达到 5FPS，因此是一种检测性能高，同时推理速度能达到实际使用的方法。通过对比实验发现，FPN能**使Fast RCNN的检测性能提升2.3个点（COCO）和3.8个点（VOC）**。
 
-![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FPN/1.png)
+![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/FPN/1.png)
 
 
 ## 二、主要内容
@@ -24,10 +24,10 @@ FPN包含两个部分：第一部分是**自底向上**的过程，第二部分�
 （注意这里**没有用C1，原因是feature map太大，太消耗内存了**。）
 
 **自顶向下过程以及侧向连接**：自顶向下的过程通过**上采样**（up-sampling）的方式将顶层的小特征图（例如20）放大到上一个stage的特征图一样的大小（例如40）。**这样的好处是既利用了顶层较强的语义特征（利于分类），又利用了底层的高分辨率信息（利于定位）！**上采样的方法可以用最近邻差值实现。为了将高层语义特征和底层的精确定位能力结合，作者提出类似于残差网络的侧向连接结构。**侧向连接将上一层经过上采样后和当前层分辨率一致的特征，通过相加的方法进行融合**。（这里为了修正通道数量，将当前层先经过1x1卷积操作。）如图所示。
-![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FPN/2.png)
+![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/FPN/2.png)
 
 **FPN的结构如下图所示**：
-![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FPN/3.png)
+![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/FPN/3.png)
 论文中使用resnet34层模型构造了一组新的特征P2~P5，每个特征都是ResNet中不同卷积层融合的结果，具体如下图所示：由conv2到conv5得到的C2到C5大小和维度分别是56x56x64，28x28x128，14x14x256，7x7x512，输入图片的size是224x224。所以在top-down中，先**用了一个1x1x256的卷积减少通道数**，将C5：7x7x512 变成了M5：7x7x256， 每一个M之后都接了**一个3x3x256卷积用来消除不同层之间的混叠效果**，其实也就是缓冲作用。关于 P4的构造，我们**先将M5上采样使feature map加倍**，用简单的 **nearest neighbour upsamping** 方法就行，这样M5就变成了M5'：14x14x256，**同时C4：14x14x256经过1x1x256得到C4'：14x14x256, 将M5' + C4' ， element-wisely ，就可以得到 M4:14x14x256**，这个过程再做两次，分别得到M3和M2，M层特征再经过3x3卷积，最终得到完整的P2、P3、P4、P5层特征，P2到P5层的大小分别是56x56x256，28x28x256，14x14x256，7x7x256；注意到**P层的通道数都是256**。
 
 fpn的代码实现如下：
@@ -72,13 +72,13 @@ FPN本身不是检测算法，只是一个**特征提取器**。它需要和其�
 
 **FPN针对RPN的改进是将网络头部应用到每一个P层**。由于每个P层相对于原始图片具有不同的尺度信息，因此作者将原始RPN中的尺度信息分离，让每个P层只处理单一的尺度信息。具体的，**对{32^2、64^2、128^2、256^2、512^2}这五种尺度的anchor，分别对应到{P2、P3、P4、P5、P6}这五个特征层上（注意，这里的base size比如32，是指的在原图中的anchor基准大小，而不是feature map中的）**。每个特征层都处理1:1、1:2、2:1三种长宽比例的候选框。**P6是专门为了RPN网络而设计的，用来处理512大小的候选框。它由P5经过下采样得到**，注意p6是根据论文中所指添加：
 
-![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FPN/3_00.png)
+![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/FPN/3_00.png)
 
 **正负样本的界定和Faster RCNN差不多**：如果某个anchor和一个给定的ground truth有最高的IOU或者和任意一个Ground truth的IOU都大于0.7，则是正样本。如果一个anchor和任意一个ground truth的IOU都小于0.3，则为负样本。
 
 改进后的RPN结构如下图所示（参考 https://blog.csdn.net/xiamentingtao/article/details/78598027 ）。
 
-![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FPN/3_0.png)
+![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/FPN/3_0.png)
 
 另外，**上述5个网络头部的参数是共享的，这也是强调为什么各阶层输出的channel必须一致的原因，这样才能使用相同的参数，达到共享的目的**。**作者通过实验发现，网络头部参数共享和不共享两种设置得到的结果几乎没有差别。这说明不同层级之间的特征有相似的语义层次**。这和特征金字塔网络的原理一致。
 
@@ -89,7 +89,7 @@ FPN本身不是检测算法，只是一个**特征提取器**。它需要和其�
 Fast R-CNN 中很重要的是RoI Pooling层，需要对不同层级的金字塔制定不同尺度的RoI。
 RoI Pooling层使用region proposal的结果和中间的某一特征图作为输入，得到的结果经过分解后分别用于分类结果和边框回归。 作者将FPN的各个特征层类比为图像金字塔的各个level的特征，从而将不同尺度的RoI映射到对应的特征层上，大尺度RoI就用后面一些的金字塔层，比如P5；小尺度RoI就用前面一点的特征层，比如P4。以224大小的图片输入为例，宽高为w和h的RoI将被映射到的特征级别为k，它的计算公式如下：
 
-![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FPN/4.png)
+![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/FPN/4.png)
 
 224是ImageNet的标准输入，k0是基准值，设置为5，代表P5层的输出（原图大小就用P5层），w和h是RoI区域的长和宽，假设RoI是112 * 112的大小，那么k = k0-1 = 5-1 = 4，意味着该RoI应该使用P4的特征层。k值应该会做取整处理，防止结果不是整数。
 然后，因为作者把conv5也作为了金字塔结构的一部分，那么从前全连接层的那个作用怎么办呢？这里采取的方法是增加两个1024维的轻量级全连接层，然后再跟上分类器和边框回归，认为这样还能使速度更快一些。
@@ -100,15 +100,21 @@ RoI Pooling层使用region proposal的结果和中间的某一特征图作为输
 
 **首先，Faster-RCNN中原有的VGG网络换成ResNet-101**，ResNet-101结构如下图：
 
-![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FPN/5.jpeg)
+![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/FPN/5.jpeg)
 
 **其次，Faster-RCNN利用conv1到conv4_x的91层为共享卷积层，然后从conv4_x的输出开始分叉**，一路经过RPN网络进行区域选择，把RPN的结果输入RoI Pooling层；另一路直接连一个RoI Pooling层，经过RoI Pooling后映射到7x7（自注：还是14x14？）大小的特征。然后将经过RoI Pooling后的特征再进入原来的conv5_x的计算，进而得到最终的分类和边框回归结果。**这里conv5_x起到原来全连接层（fc）的作用**。在FPN中，conv5层已经被用来作为特征提取器得到P5层；因此，这里单独设计两个1024维的全连接层作为检测网络的网络头部。新的网络头部是随机初始化的，它相比于原来的conv5层更加轻量级。整体框架用下图表示：
 
-![这里随便写文字](https://github.com/clw5180/CV_Paper/raw/master/res/FPN/6.png)
+![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/FPN/6.png)
 
 
 ## 三、实验结果
-&emsp;&emsp;
+![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/FPN/7.png)
+
+
+
+![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/FPN/8.png)
+
+
 
 
 ## 四、结论
