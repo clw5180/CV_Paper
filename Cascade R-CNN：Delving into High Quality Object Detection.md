@@ -20,7 +20,7 @@ paradox 矛盾的人或事，悖论
 
 ## 二、主要内容
 
-Figure1（c）和（d）中的曲线是用来描述localization performance，其中横坐标表示输入proposal和ground truth的IoU值，纵坐标表示输出的proposal和ground truth的IoU值。红、绿、蓝3条曲线代表训练检测模型时用的正负样本标签的阈值分别是u=0.7、0.6、0.5；从（c）可以看出，比如对于Faster R-CNN的RPN网络，当采用某个阈值（假设u=0.5，u即IoU threshold）来界定正负样本时，如果多数anchor和gt的IoU低于0.5，比如0.3，那么训练时采用u=0.5的模型就比u=0.6的模型好；如果多数anchor和gt的IoU高于0.5，比如0.75，那么训练时采用u=0.5的模型就不如u=0.6的模型。即作者所说：“In general, a detector optimized at a single IoU level is not necessarily optimal at other levels”。
+Figure1（c）和（d）中的曲线是用来描述localization performance，其中横坐标表示输入proposal和ground truth的IoU值，纵坐标表示输出的proposal和ground truth的IoU值。红、绿、蓝3条曲线代表训练检测模型时用的正负样本标签的阈值分别是u=0.7、0.6、0.5；从（c）可以看出，比如对于Faster R-CNN的RPN网络，当采用某个阈值（假设u=0.5，u即IoU threshold）来界定正负样本时，如果多数anchor和gt的IoU都在0.5附近，那么训练时采用u=0.5的模型就比u=0.6的模型好；如果多数anchor和gt的IoU都高于0.5不少，比如在0.75附近，那么训练时采用u=0.5的模型就不如u=0.6的模型。即作者所说：“In general, a detector optimized at a single IoU level is not necessarily optimal at other levels”。
 
 ![这里随便写文字](https://github.com/clw5180/CV_Paper/blob/master/res/CascadeRCNN/1.png)
 
